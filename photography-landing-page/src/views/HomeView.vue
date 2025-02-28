@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import HeroSection from '@/modules/hero/components/hero-section.vue';
 </script>
 
 <template>
-    <button class="bg-sky-500 hover:bg-sky-700 rou">Save changes</button>
-
+<HeroSection/>
 </template>

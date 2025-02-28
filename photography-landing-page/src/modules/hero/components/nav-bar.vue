@@ -5,7 +5,7 @@
       </div>
   
       <div class="flex-1 flex justify-center">
-        <ul class="flex flex-row gap-4 text-lg">
+        <ul class="flex flex-row gap-6 text-lg">
           <li>Shots</li>
           <li>Know Us</li>
         </ul>

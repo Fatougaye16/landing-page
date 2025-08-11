@@ -63,10 +63,9 @@
   </div>
 </template>
 
-<script setup >
+<script setup lang="ts">
 import { useRouter } from "vue-router";
 import NavBar from "./nav-bar.vue";
-
 const socialLinks = [
   { icon: "fab fa-facebook", url: "https://facebook.com" },
   { icon: "fab fa-instagram", url: "https://instagram.com" },

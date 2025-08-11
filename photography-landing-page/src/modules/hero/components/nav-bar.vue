@@ -1,21 +1,24 @@
 <template>
-    <div class="flex items-center justify-between w-full p-8 text-stone-50">
-      <div class="flex-1">
-        <h1 class="text-2xl font-bold">SweetShots</h1>
-      </div>
-  
-      <div class="flex-1 flex justify-center">
-        <ul class="flex flex-row gap-6 text-lg">
-          <li>Shots</li>
-          <li>Know Us</li>
-        </ul>
-      </div>
-  
-      <div class="flex-1 flex justify-end">
-        <button class=" border-2 text-white px-4 py-2 rounded-lg hover:bg-sky-100 hover:text-black">
-          Book Now
-        </button>
-      </div>
+  <nav class="flex items-center justify-between w-full px-10 py-6 bg-white text-[#7b1e3a] shadow-md">
+    <!-- Logo -->
+    <div class="flex-1">
+      <h1 class="text-3xl font-bold tracking-wide">SweetShots</h1>
     </div>
-  </template>
-  
+
+    <!-- Links -->
+    <div class="flex-1 flex justify-center">
+      <ul class="flex gap-8 text-lg font-medium">
+        <li class="hover:text-black cursor-pointer transition-colors">Shots</li>
+        <li class="hover:text-black cursor-pointer transition-colors">Know Us</li>
+        <li class="hover:text-black cursor-pointer transition-colors">Contact</li>
+      </ul>
+    </div>
+
+    <!-- Button -->
+    <div class="flex-1 flex justify-end">
+      <button class="border-2 border-[#7b1e3a] bg-[#7b1e3a] text-white px-5 py-2 rounded-lg hover:bg-white hover:text-[#7b1e3a] transition-colors">
+        Book Now
+      </button>
+    </div>
+  </nav>
+</template>

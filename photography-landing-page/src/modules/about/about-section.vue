@@ -10,7 +10,7 @@
       </div>
   
       <div class="mt-6">
-        <img src="/camera-bg.jpg" alt="Camera Background" class="w-full max-w-md h-auto rounded-lg shadow-md">
+        <img src="/man-lens.jpg" alt="Camera Background" class="w-full max-w-md h-auto rounded-lg shadow-md">
       </div>
     </div>
   </template>

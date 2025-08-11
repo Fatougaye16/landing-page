@@ -1,112 +1,69 @@
 <template>
-  <div
-    class="relative h-screen bg-cover bg-center overflow-hidden"
-    style="background-image: url('/bw-portrait.jpg');"
-  >
+  <div class="relative h-screen bg-cover bg-center overflow-hidden" style="background-image: url('/bw-portrait.jpg');">
     <!-- Cinematic Gradient Overlay -->
-    <div
-      class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"
-    ></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-    <!-- Floating Light Particles (hidden on small screens) -->
-    <div
-      class="absolute inset-0 pointer-events-none hidden sm:block"
-    >
-      <div
-        v-for="n in 20"
-        :key="n"
-        class="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float"
-        :style="{
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          animationDelay: `${Math.random() * 5}s`,
-        }"
-      ></div>
+    <div class="absolute inset-0 pointer-events-none hidden sm:block">
+      <div v-for="n in 20" :key="n" class="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float" :style="{
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 5}s`,
+      }"></div>
     </div>
 
-    <!-- Navigation -->
-    <NavBar class="relative z-20" />
+    <NavBar />
 
-    <!-- Hero Content -->
     <div
-      class="relative z-20 flex flex-col items-center justify-center h-full text-center text-white px-4 sm:px-8 lg:px-16"
-    >
+      class="relative z-20 flex flex-col items-center justify-center h-full text-center text-white px-4 sm:px-8 lg:px-16">
       <h1
-        class="font-extrabold font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight animate-fadeInUp leading-tight"
-      >
+        class="font-extrabold font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight animate-fadeInUp leading-tight">
         Capturing <span class="text-[#7b1e3a]">Stories</span> <br />
         Beyond Frames
       </h1>
-      <p
-        class="mt-4 max-w-xl text-sm sm:text-base md:text-lg text-gray-200 animate-fadeInUp delay-200 px-2 sm:px-0"
-      >
+      <p class="mt-4 max-w-xl text-sm sm:text-base md:text-lg text-gray-200 animate-fadeInUp delay-200 px-2 sm:px-0">
         Photography is the art of freezing emotions, preserving moments, and
         telling timeless tales without words.
       </p>
-      <button
-        @click="scrollToContact"
-        class="mt-8 px-8 py-3 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white
+      <button @click="scrollToContact" class="mt-8 px-8 py-3 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white
                hover:bg-white hover:text-black transition-all duration-300 shadow-lg animate-fadeInUp delay-300
-               w-full sm:w-auto max-w-xs"
-      >
+               w-full sm:w-auto max-w-xs">
         Contact Us
       </button>
     </div>
 
     <!-- Right bottom photo frames: stack vertically on small screens -->
     <div
-      class="absolute right-4 bottom-4 flex flex-col items-end space-y-4 z-20 animate-slideIn sm:right-16 sm:bottom-12 sm:flex-row sm:space-x-4 sm:space-y-0"
-    >
-      <div
-        class="photo-frame z-20 rotate-6 w-28 sm:w-64"
-        style="--rotate: 6deg; --delay: 0s"
-      >
+      class="absolute right-4 bottom-4 flex flex-col items-end space-y-4 z-20 animate-slideIn sm:right-16 sm:bottom-12 sm:flex-row sm:space-x-4 sm:space-y-0">
+      <div class="photo-frame z-20 rotate-6 w-28 sm:w-64" style="--rotate: 6deg; --delay: 0s">
         <img src="/lens.jpg" alt="Sample Work" />
       </div>
-      <div
-        class="photo-frame z-10 -rotate-6 w-28 sm:w-64"
-        style="--rotate: -6deg; --delay: 0.5s"
-      >
+      <div class="photo-frame z-10 -rotate-6 w-28 sm:w-64" style="--rotate: -6deg; --delay: 0.5s">
         <img src="/lens-2.jpg" alt="Sample Work" />
       </div>
     </div>
 
     <!-- Left bottom photo frames: stack vertically on small screens -->
     <div
-      class="absolute left-4 bottom-4 flex flex-col space-y-4 z-20 animate-slideIn sm:left-16 sm:bottom-12 sm:flex-row sm:space-x-4 sm:space-y-0"
-    >
-      <div
-        class="photo-frame z-20 rotate-6 w-28 sm:w-64"
-        style="--rotate: 6deg; --delay: 1s"
-      >
+      class="absolute left-4 bottom-4 flex flex-col space-y-4 z-20 animate-slideIn sm:left-16 sm:bottom-12 sm:flex-row sm:space-x-4 sm:space-y-0">
+      <div class="photo-frame z-20 rotate-6 w-28 sm:w-64" style="--rotate: 6deg; --delay: 1s">
         <img src="/man-lens.jpg" alt="Sample Work" />
       </div>
-      <div
-        class="photo-frame z-10 -rotate-6 w-28 sm:w-64"
-        style="--rotate: -6deg; --delay: 1.5s"
-      >
+      <div class="photo-frame z-10 -rotate-6 w-28 sm:w-64" style="--rotate: -6deg; --delay: 1.5s">
         <img src="/nature-shot.jpg" alt="Sample Work" />
       </div>
     </div>
 
     <!-- Social Media Links -->
-    <div
-      class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-6 text-white z-20 text-xl sm:text-2xl"
-    >
-      <a
-        v-for="link in socialLinks"
-        :key="link.icon"
-        :href="link.url"
-        target="_blank"
-        class="hover:text-[#7b1e3a] transition duration-300"
-      >
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-6 text-white z-20 text-xl sm:text-2xl">
+      <a v-for="link in socialLinks" :key="link.icon" :href="link.url" target="_blank"
+        class="hover:text-[#7b1e3a] transition duration-300">
         <i :class="link.icon"></i>
       </a>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup >
 import { useRouter } from "vue-router";
 import NavBar from "./nav-bar.vue";
 

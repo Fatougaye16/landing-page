@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup >
 import HeroSection from '@/modules/hero/components/hero-section.vue';
 import GallerySection from '@/modules/shots/components/gallery-section.vue';
 import AboutSection from '@/modules/about/about-section.vue';

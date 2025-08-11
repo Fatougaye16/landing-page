@@ -1,12 +1,9 @@
 <template>
     <div class="relative h-screen bg-[url('/camera-bg.jpg')] bg-cover bg-center">
-      <!-- Dark Overlay for Better Readability -->
       <div class="absolute inset-0 bg-black/50"></div>
   
-      <!-- Navigation Bar -->
       <NavBar class="relative z-10"/>
   
-      <!-- Hero Content -->
       <div class="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
         <h1 class="font-extrabold text-5xl md:text-7xl lg:text-8xl">
           Capturing Your Best Moments
@@ -16,7 +13,6 @@
         </button>
       </div>
   
-      <!-- Social Media Links -->
       <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-6 text-white">
         <a href="#" class="text-2xl hover:text-sky-400 transition duration-300"><i class="fab fa-facebook"></i></a>
         <a href="#" class="text-2xl hover:text-pink-500 transition duration-300"><i class="fab fa-instagram"></i></a>

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import PhotographersListView from '@/views/PhotographersListView.vue'
+import PhotographerDetailsView from '@/views/PhotographerDetailsView.vue'
 import Contact from '@/modules/contacts/contact.vue'
 
 const router = createRouter({
@@ -16,6 +17,12 @@ const router = createRouter({
       name: 'photographers',
       component: PhotographersListView,
     },
+    {
+    path: '/photographers/:id',
+    name: 'photographer-details',
+    component: PhotographerDetailsView,
+    props: true,
+  },
     {
       path: '/about',
       name: 'about',

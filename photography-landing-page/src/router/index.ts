@@ -13,6 +13,11 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: '/shots',
+      name: 'shots',
+      component: () => import('@/views/ShotsView.vue'),
+    },
+    {
       path: '/photographers',
       name: 'photographers',
       component: PhotographersListView,

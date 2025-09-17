@@ -1,16 +1,55 @@
 <template>
-  <nav class="flex items-center justify-between w-full px-6 py-4 bg-white text-[#7b1e3a] shadow-md">
+  <nav class="fixed top-0 left-0 right-0 flex items-center justify-between w-full px-6 py-4 bg-white text-[#7b1e3a] shadow-md z-50">
     <!-- Logo -->
     <div class="flex-1">
-      <h1 class="text-2xl md:text-3xl font-bold tracking-wide">SweetShots</h1>
+      <RouterLink to="/" class="text-2xl md:text-3xl font-bold tracking-wide hover:text-black transition-colors">
+        SweetShots
+      </RouterLink>
     </div>
 
     <!-- Desktop Links -->
     <div class="hidden md:flex flex-1 justify-center">
       <ul class="flex gap-8 text-lg font-medium">
-        <li class="hover:text-black cursor-pointer transition-colors">Shots</li>
-        <li class="hover:text-black cursor-pointer transition-colors">Know Us</li>
-        <li class="hover:text-black cursor-pointer transition-colors">Contact</li>
+        <li>
+          <RouterLink 
+            to="/shots" 
+            class="hover:text-black cursor-pointer transition-colors relative group"
+            active-class="text-black font-semibold"
+          >
+            Shots
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#7b1e3a] transition-all duration-300 group-hover:w-full"></span>
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink 
+            to="/about" 
+            class="hover:text-black cursor-pointer transition-colors relative group"
+            active-class="text-black font-semibold"
+          >
+            Know Us
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#7b1e3a] transition-all duration-300 group-hover:w-full"></span>
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink 
+            to="/photographers" 
+            class="hover:text-black cursor-pointer transition-colors relative group"
+            active-class="text-black font-semibold"
+          >
+            Photographers
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#7b1e3a] transition-all duration-300 group-hover:w-full"></span>
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink 
+            to="/contact" 
+            class="hover:text-black cursor-pointer transition-colors relative group"
+            active-class="text-black font-semibold"
+          >
+            Contact
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#7b1e3a] transition-all duration-300 group-hover:w-full"></span>
+          </RouterLink>
+        </li>
       </ul>
     </div>
 
@@ -30,11 +69,48 @@
 
     <!-- Mobile Dropdown Menu -->
     <transition name="fade">
-      <div v-if="isMenuOpen" class="absolute top-16 left-0 w-full bg-white shadow-lg p-6 z-50 md:hidden">
+      <div v-if="isMenuOpen" class="fixed top-16 left-0 w-full bg-white shadow-lg p-6 z-50 md:hidden">
         <ul class="flex flex-col gap-4 text-lg font-medium">
-          <li class="hover:text-black cursor-pointer transition-colors">Shots</li>
-          <li class="hover:text-black cursor-pointer transition-colors">Know Us</li>
-          <li class="hover:text-black cursor-pointer transition-colors">Contact</li>
+          <li>
+            <RouterLink 
+              to="/shots" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              Shots
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink 
+              to="/about" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              Know Us
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink 
+              to="/photographers" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              Photographers
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink 
+              to="/contact" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              Contact
+            </RouterLink>
+          </li>
           <li>
             <button
             @click="bookNow"
@@ -51,13 +127,16 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 
 const router = useRouter();
+const isMenuOpen = ref(false);
+
 const bookNow = () => {
   console.log('clicked')
   router.push('/photographers')
+  isMenuOpen.value = false; // Close mobile menu after navigation
 }
-const isMenuOpen = ref(false);
 </script>
 
 <style scoped>

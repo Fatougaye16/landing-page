@@ -1,7 +1,7 @@
 <template>
-  <div class="relative h-screen bg-cover bg-center overflow-hidden" style="background-image: url('/bw-portrait.jpg');">
+  <div class="relative h-screen bg-cover bg-center overflow-hidden" style="background-image: url('/portrait.jpg');">
     <!-- Cinematic Gradient Overlay -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30"></div>
 
     <div class="absolute inset-0 pointer-events-none hidden sm:block">
       <div v-for="n in 20" :key="n" class="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float" :style="{
@@ -11,22 +11,20 @@
       }"></div>
     </div>
 
-    <NavBar />
-
     <div
       class="relative z-20 flex flex-col items-center justify-center h-full text-center text-white px-4 sm:px-8 lg:px-16">
       <h1
-        class="font-extrabold font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight animate-fadeInUp leading-tight">
-        Capturing <span class="text-[#7b1e3a]">Stories</span> <br />
+        class="font-extrabold font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight animate-fadeInUp leading-tight text-white drop-shadow-2xl">
+        Capturing <span class="text-[#ff6b9d] drop-shadow-lg">Stories</span> <br />
         Beyond Frames
       </h1>
-      <p class="mt-4 max-w-xl text-sm sm:text-base md:text-lg text-gray-200 animate-fadeInUp delay-200 px-2 sm:px-0">
+      <p class="mt-4 max-w-xl text-sm sm:text-base md:text-lg text-gray-100 animate-fadeInUp delay-200 px-2 sm:px-0 drop-shadow-lg">
         Photography is the art of freezing emotions, preserving moments, and
         telling timeless tales without words.
       </p>
-      <button @click="scrollToContact" class="mt-8 px-8 py-3 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white
-               hover:bg-white hover:text-black transition-all duration-300 shadow-lg animate-fadeInUp delay-300
-               w-full sm:w-auto max-w-xs">
+      <button @click="scrollToContact" class="mt-8 px-8 py-4 rounded-full border-2 border-white bg-white text-black font-semibold
+               hover:bg-[#7b1e3a] hover:text-white hover:border-[#7b1e3a] transition-all duration-300 shadow-2xl animate-fadeInUp delay-300
+               w-full sm:w-auto max-w-xs text-lg">
         Contact Us
       </button>
     </div>
@@ -65,7 +63,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import NavBar from "./nav-bar.vue";
+
 const socialLinks = [
   { icon: "fab fa-facebook", url: "https://facebook.com" },
   { icon: "fab fa-instagram", url: "https://instagram.com" },

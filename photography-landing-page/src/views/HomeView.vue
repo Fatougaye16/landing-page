@@ -18,7 +18,8 @@ const photographers = ref([
 		specializations: ["Wedding", "Portrait", "Event", "Fashion"],
 		projectsCompleted: 500,
 		experience: 5,
-		location: "Banjul"
+		location: "Banjul",
+		type: "Photography & Videography"
 	},
 	{
 		id: 2,
@@ -31,7 +32,8 @@ const photographers = ref([
 		specializations: ["Portrait", "Family", "Corporate", "Fashion"],
 		projectsCompleted: 350,
 		experience: 4,
-		location: "Serrekunda"
+		location: "Serrekunda",
+		type: "Photography Only"
 	},
 	{
 		id: 3,
@@ -44,7 +46,8 @@ const photographers = ref([
 		specializations: ["Event", "Corporate", "Commercial", "Documentary"],
 		projectsCompleted: 400,
 		experience: 6,
-		location: "Brikama"
+		location: "Brikama",
+		type: "Photography & Videography"
 	},
 	{
 		id: 4,
@@ -57,7 +60,8 @@ const photographers = ref([
 		specializations: ["Fashion", "Portrait", "Art", "Creative"],
 		projectsCompleted: 280,
 		experience: 3,
-		location: "Bakau"
+		location: "Bakau",
+		type: "Photography Only"
 	},
 	{
 		id: 5,
@@ -70,7 +74,8 @@ const photographers = ref([
 		specializations: ["Wedding", "Traditional", "Event", "Cultural"],
 		projectsCompleted: 450,
 		experience: 7,
-		location: "Gunjur"
+		location: "Gunjur",
+		type: "Photography & Videography"
 	},
 	{
 		id: 6,
@@ -83,7 +88,8 @@ const photographers = ref([
 		specializations: ["Lifestyle", "Brand", "Social Media", "Product"],
 		projectsCompleted: 200,
 		experience: 2,
-		location: "Kanifing"
+		location: "Kanifing",
+		type: "Photography Only"
 	}
 ])
 </script>
@@ -135,62 +141,25 @@ const photographers = ref([
 				<p class="text-xl text-gray-600">Discover talented photographers ready to capture your special moments</p>
 			</div>
 			
-			<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+			<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 				<div v-for="photographer in photographers" :key="photographer.id" 
-					 class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
-					<!-- Photographer Image -->
-					<div class="relative h-64 overflow-hidden">
-						<img :src="photographer.coverImage" 
-							 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+					 class="text-center group cursor-pointer">
+					<!-- Logo -->
+					<div class="mb-2">
+						<img :src="photographer.logo" 
+							 class="w-14 h-14 md:w-16 md:h-16 rounded-full mx-auto object-cover shadow-md group-hover:shadow-lg transition-shadow duration-300" 
 							 :alt="photographer.name" />
-						<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-						
-						<!-- Logo/Avatar -->
-						<div class="absolute bottom-4 left-4">
-							<img :src="photographer.logo" 
-								 class="w-16 h-16 rounded-full border-4 border-white shadow-lg object-cover" 
-								 :alt="photographer.studio" />
-						</div>
-						
-						<!-- Rating -->
-						<div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-							<div class="flex items-center gap-1">
-								<span class="text-yellow-500">⭐</span>
-								<span class="text-sm font-semibold text-gray-800">{{ photographer.rating }}</span>
-							</div>
-						</div>
 					</div>
 					
-					<!-- Content -->
-					<div class="p-6">
-						<div class="flex items-center justify-between mb-3">
-							<h3 class="text-xl font-bold text-gray-800">{{ photographer.name }}</h3>
-							<span class="text-sm text-[#7b1e3a] font-semibold">{{ photographer.studio }}</span>
-						</div>
-						
-						<p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ photographer.description }}</p>
-						
-						<!-- Specializations -->
-						<div class="flex flex-wrap gap-2 mb-4">
-							<span v-for="spec in photographer.specializations.slice(0, 3)" :key="spec" 
-								  class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-								{{ spec }}
-							</span>
-						</div>
-						
-						<!-- Stats -->
-						<div class="flex justify-between items-center mb-4 text-sm text-gray-500">
-							<span>{{ photographer.projectsCompleted }}+ Projects</span>
-							<span>{{ photographer.experience }} Years</span>
-							<span>{{ photographer.location }}</span>
-						</div>
-						
-						<!-- Action Button -->
-						<router-link :to="`/photographer/${photographer.id}`" 
-									 class="block w-full bg-[#7b1e3a] hover:bg-[#5c162c] text-white text-center py-3 rounded-lg font-semibold transition-colors">
-							View Portfolio
-						</router-link>
-					</div>
+					<!-- Name -->
+					<h3 class="text-sm md:text-base font-semibold text-gray-800 group-hover:text-[#7b1e3a] transition-colors">
+						{{ photographer.name }}
+					</h3>
+					
+					<!-- Type -->
+					<p class="text-xs text-gray-600 mt-1">
+						{{ photographer.type }}
+					</p>
 				</div>
 			</div>
 			

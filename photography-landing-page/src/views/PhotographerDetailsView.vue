@@ -87,34 +87,6 @@
 
         <div class="max-w-6xl mx-auto p-6 space-y-12">
 
-        <!-- About Section -->
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-            <div class="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-800 mb-4">About {{ photographer.name }}</h2>
-                    <p class="text-gray-600 leading-relaxed mb-6">
-                        With over 5 years of experience capturing life's most precious moments, I specialize in creating 
-                        timeless memories through my lens. My passion for photography began during my university years, 
-                        and since then, I've had the privilege of documenting hundreds of weddings, portraits, and special events.
-                    </p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-[#7b1e3a]">500+</div>
-                            <div class="text-sm text-gray-600">Happy Clients</div>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-[#7b1e3a]">1000+</div>
-                            <div class="text-sm text-gray-600">Photos Taken</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="relative">
-                    <img :src="photographer.image" class="w-full h-80 object-cover rounded-xl shadow-lg" alt="about" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-xl"></div>
-                </div>
-            </div>
-        </div>
-
         <!-- Enhanced Booking System -->
         <div id="booking-section" class="bg-white rounded-2xl shadow-lg p-8">
             <div class="text-center mb-8">
@@ -122,28 +94,53 @@
                 <p class="text-gray-600">Choose your preferred date, time, and package to get started</p>
             </div>
 
-            <!-- Booking Steps Indicator -->
-            <div class="flex items-center justify-center mb-8">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center">
-                        <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
-                                     bookingStep >= 1 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">1</div>
-                        <span class="ml-2 text-sm font-medium text-gray-600">Date</span>
-                    </div>
-                    <div class="w-8 h-px bg-gray-200"></div>
-                    <div class="flex items-center">
-                        <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
-                                     bookingStep >= 2 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">2</div>
-                        <span class="ml-2 text-sm font-medium text-gray-600">Time</span>
-                    </div>
-                    <div class="w-8 h-px bg-gray-200"></div>
-                    <div class="flex items-center">
-                        <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
-                                     bookingStep >= 3 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">3</div>
-                        <span class="ml-2 text-sm font-medium text-gray-600">Details</span>
+            <!-- Authentication Required Notice -->
+            <div v-if="!user" class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-blue-600 text-xl"></i>
                     </div>
                 </div>
+                <h3 class="text-lg font-semibold text-gray-800 text-center mb-2">Sign in to Book</h3>
+                <p class="text-gray-600 text-center mb-4">
+                    Please sign in or create an account to book appointments and manage your photo sessions.
+                </p>
+                <div class="flex gap-4 justify-center">
+                    <RouterLink to="/login" 
+                                class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white px-6">
+                        Sign In
+                    </RouterLink>
+                    <RouterLink to="/register" 
+                                class="btn btn-outline border-[#7b1e3a] text-[#7b1e3a] hover:bg-[#7b1e3a] hover:text-white px-6">
+                        Create Account
+                    </RouterLink>
+                </div>
             </div>
+
+            <!-- Booking Form (only show if authenticated) -->
+            <div v-if="user">
+                <!-- Booking Steps Indicator -->
+                <div class="flex items-center justify-center mb-8">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
+                                         bookingStep >= 1 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">1</div>
+                            <span class="ml-2 text-sm font-medium text-gray-600">Date</span>
+                        </div>
+                        <div class="w-8 h-px bg-gray-200"></div>
+                        <div class="flex items-center">
+                            <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
+                                         bookingStep >= 2 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">2</div>
+                            <span class="ml-2 text-sm font-medium text-gray-600">Time</span>
+                        </div>
+                        <div class="w-8 h-px bg-gray-200"></div>
+                        <div class="flex items-center">
+                            <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition',
+                                         bookingStep >= 3 ? 'bg-[#7b1e3a] text-white' : 'bg-gray-200 text-gray-500']">3</div>
+                            <span class="ml-2 text-sm font-medium text-gray-600">Details</span>
+                        </div>
+                    </div>
+                </div>
 
             <!-- Step 1: Date Selection -->
             <div v-if="bookingStep === 1" class="bg-gray-50 rounded-xl p-6">
@@ -261,6 +258,35 @@
                             class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white px-8">
                         <span class="mr-2">📅</span> Confirm Booking
                     </button>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">About {{ photographer.name }}</h2>
+                    <p class="text-gray-600 leading-relaxed mb-6">
+                        With over 5 years of experience capturing life's most precious moments, I specialize in creating 
+                        timeless memories through my lens. My passion for photography began during my university years, 
+                        and since then, I've had the privilege of documenting hundreds of weddings, portraits, and special events.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-[#7b1e3a]">500+</div>
+                            <div class="text-sm text-gray-600">Happy Clients</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-[#7b1e3a]">1000+</div>
+                            <div class="text-sm text-gray-600">Photos Taken</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <img :src="photographer.image" class="w-full h-80 object-cover rounded-xl shadow-lg" alt="about" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-xl"></div>
                 </div>
             </div>
         </div>
@@ -573,11 +599,95 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+
 const route = useRoute();
+const router = useRouter();
+
+// User authentication
+const user = ref(null);
+
+// Check for user authentication on mount
+onMounted(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        user.value = JSON.parse(userData);
+        // Pre-fill form with user data if authenticated
+        if (user.value) {
+            name.value = user.value.name || '';
+            email.value = user.value.email || '';
+            phone.value = user.value.phone || '';
+        }
+    }
+});
+
+// Check if user is authenticated before allowing booking
+const requireAuth = () => {
+    if (!user.value) {
+        toast.info('Please sign in to book an appointment');
+        router.push(`/login?redirect=${route.fullPath}`);
+        return false;
+    }
+    return true;
+};
+
+function bookAppointment() {
+    // Check authentication first
+    if (!requireAuth()) return;
+    
+    if (!name.value || !email.value || !phone.value || !selectedPackage.value) {
+        toast.error("Please fill in all required details!", {autoClose: 5000});
+        return;
+    }
+    
+    const bookingDetails = {
+        userId: user.value.id,
+        photographerId: photographer.value.id,
+        name: name.value,
+        email: email.value,
+        phone: phone.value,
+        date: formatSelectedDate(),
+        time: selectedTime.value,
+        package: selectedPackage.value,
+        specialRequests: specialRequests.value,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+    };
+    
+    // Save booking to user's bookings (in a real app, this would be sent to backend)
+    const existingBookings = JSON.parse(localStorage.getItem('userBookings') || '[]');
+    existingBookings.push(bookingDetails);
+    localStorage.setItem('userBookings', JSON.stringify(existingBookings));
+    
+    toast.success(`Booking confirmed for ${name.value} on ${formatSelectedDate()} at ${selectedTime.value}!`, {autoClose: 5000});
+    
+    // Reset form
+    selectedDate.value = selectedTime.value = selectedPackage.value = "";
+    specialRequests.value = "";
+    bookingStep.value = 1;
+    
+    // Redirect to dashboard to view booking
+    setTimeout(() => {
+        router.push('/dashboard');
+    }, 2000);
+    
+    console.log('Booking Details:', bookingDetails);
+}
+
+function selectPackageForBooking(packageName) {
+    // Check authentication before allowing package selection
+    if (!requireAuth()) return;
+    
+    selectedPackage.value = packageName;
+    // Scroll to booking section
+    const bookingSection = document.querySelector('#booking-section');
+    if (bookingSection) {
+        bookingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 
 // Mock photographer data
 const photographers = [
@@ -726,15 +836,6 @@ function previousImage() {
     }
 }
 
-function selectPackageForBooking(packageName) {
-    selectedPackage.value = packageName;
-    // Scroll to booking section
-    const bookingSection = document.querySelector('#booking-section');
-    if (bookingSection) {
-        bookingSection.scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
 // Calendar & booking
 const currentYear = ref(new Date().getFullYear());
 const currentMonth = ref(new Date().getMonth() + 1);
@@ -829,32 +930,5 @@ function selectDate(day) {
 function selectTime(slot) {
     selectedTime.value = slot;
     bookingStep.value = 3;
-}
-
-function bookAppointment() {
-    if (!name.value || !email.value || !phone.value || !selectedPackage.value) {
-        toast.error("Please fill in all required details!", {autoClose: 5000});
-        return;
-    }
-    
-    const bookingDetails = {
-        name: name.value,
-        email: email.value,
-        phone: phone.value,
-        date: formatSelectedDate(),
-        time: selectedTime.value,
-        package: selectedPackage.value,
-        specialRequests: specialRequests.value
-    };
-    
-    toast.success(`Booking confirmed for ${name.value} on ${formatSelectedDate()} at ${selectedTime.value}!`, {autoClose: 5000});
-    
-    // Reset form
-    name.value = email.value = phone.value = specialRequests.value = "";
-    selectedDate.value = selectedTime.value = selectedPackage.value = null;
-    bookingStep.value = 1;
-    
-    // TODO: Send booking details to backend
-    console.log('Booking Details:', bookingDetails);
 }
 </script>

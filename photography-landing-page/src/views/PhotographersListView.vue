@@ -19,14 +19,14 @@
     <!-- Photographers Grid -->
     <section class="py-16 px-6">
       <div class="max-w-6xl mx-auto">
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div 
             v-for="photographer in photographers"
             :key="photographer.id"
-            class="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+            class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
           >
             <!-- Profile Image -->
-            <div class="relative h-80 overflow-hidden">
+            <div class="relative h-48 overflow-hidden">
               <img
                 :src="photographer.image"
                 :alt="photographer.name"
@@ -34,68 +34,71 @@
               />
               <!-- Overlay -->
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="absolute bottom-4 left-4 right-4 text-white">
-                  <p class="text-sm font-medium opacity-90">{{ photographer.experience }} experience</p>
+                <div class="absolute bottom-3 left-3 right-3 text-white">
+                  <p class="text-xs font-medium opacity-90">{{ photographer.experience }} experience</p>
                 </div>
               </div>
               
               <!-- Status Badge -->
-              <div class="absolute top-4 left-4">
-                <span class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-full">
+              <div class="absolute top-3 left-3">
+                <span class="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
                   Available
                 </span>
               </div>
             </div>
 
             <!-- Content -->
-            <div class="p-6">
-              <div class="mb-4">
-                <h3 class="text-xl font-bold text-gray-900 mb-1">{{ photographer.name }}</h3>
-                <p class="text-[#7b1e3a] font-medium mb-2">{{ photographer.studio }}</p>
-                <p class="text-gray-600 text-sm leading-relaxed">{{ photographer.bio }}</p>
+            <div class="p-4">
+              <div class="mb-3">
+                <h3 class="text-lg font-bold text-gray-900 mb-1">{{ photographer.name }}</h3>
+                <p class="text-[#7b1e3a] font-medium text-sm mb-2">{{ photographer.studio }}</p>
+                <p class="text-gray-600 text-xs leading-relaxed line-clamp-2">{{ photographer.bio }}</p>
               </div>
 
               <!-- Specializations -->
-              <div class="mb-4">
-                <h4 class="text-sm font-semibold text-gray-700 mb-2">Specializations:</h4>
-                <div class="flex flex-wrap gap-2">
+              <div class="mb-3">
+                <h4 class="text-xs font-semibold text-gray-700 mb-1">Specializations:</h4>
+                <div class="flex flex-wrap gap-1">
                   <span 
-                    v-for="specialty in photographer.specializations" 
+                    v-for="specialty in photographer.specializations.slice(0, 2)" 
                     :key="specialty"
-                    class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                    class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
                   >
                     {{ specialty }}
+                  </span>
+                  <span v-if="photographer.specializations.length > 2" class="text-xs text-gray-500">
+                    +{{ photographer.specializations.length - 2 }}
                   </span>
                 </div>
               </div>
 
-              <!-- Rating -->
-              <div class="flex items-center gap-2 mb-4">
-                <div class="flex text-yellow-400">
-                  <i v-for="n in 5" :key="n" :class="n <= photographer.rating ? 'fas fa-star' : 'far fa-star'"></i>
+              <!-- Rating & Price -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-1">
+                  <div class="flex text-yellow-400 text-sm">
+                    <i v-for="n in 5" :key="n" :class="n <= photographer.rating ? 'fas fa-star' : 'far fa-star'"></i>
+                  </div>
+                  <span class="text-xs text-gray-600">({{ photographer.rating }}.0)</span>
                 </div>
-                <span class="text-sm text-gray-600">({{ photographer.rating }}.0)</span>
-              </div>
-
-              <!-- Price -->
-              <div class="mb-6">
-                <span class="text-2xl font-bold text-gray-900">${{ photographer.price }}</span>
-                <span class="text-gray-600 text-sm">/hour</span>
+                <div>
+                  <span class="text-lg font-bold text-gray-900">${{ photographer.price }}</span>
+                  <span class="text-gray-600 text-xs">/hr</span>
+                </div>
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex gap-3">
+              <div class="flex gap-2">
                 <RouterLink
                   :to="{ name: 'photographer-details', params: { id: photographer.id } }"
-                  class="flex-1 bg-[#7b1e3a] text-white text-center py-3 px-4 rounded-lg font-semibold hover:bg-[#5c162c] transition-colors"
+                  class="flex-1 bg-[#7b1e3a] text-white text-center py-2 px-3 rounded-lg text-sm font-semibold hover:bg-[#5c162c] transition-colors"
                 >
                   View Profile
                 </RouterLink>
                 <button 
                   @click="bookPhotographer(photographer)"
-                  class="flex-1 border-2 border-[#7b1e3a] text-[#7b1e3a] text-center py-3 px-4 rounded-lg font-semibold hover:bg-[#7b1e3a] hover:text-white transition-colors"
+                  class="flex-1 border border-[#7b1e3a] text-[#7b1e3a] text-center py-2 px-3 rounded-lg text-sm font-semibold hover:bg-[#7b1e3a] hover:text-white transition-colors"
                 >
-                  Book Now
+                  Book
                 </button>
               </div>
             </div>
@@ -238,5 +241,14 @@ const bookPhotographer = (photographer) => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #5c162c;
+}
+
+/* Line clamp for bio text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

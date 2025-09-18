@@ -12,6 +12,16 @@
       <ul class="flex gap-8 text-lg font-medium">
         <li>
           <RouterLink 
+            to="/" 
+            class="hover:text-black cursor-pointer transition-colors relative group"
+            active-class="text-black font-semibold"
+          >
+            Home
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#7b1e3a] transition-all duration-300 group-hover:w-full"></span>
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink 
             to="/shots" 
             class="hover:text-black cursor-pointer transition-colors relative group"
             active-class="text-black font-semibold"
@@ -54,11 +64,64 @@
     </div>
 
     <div class="hidden md:flex flex-1 justify-end">
-       <button @click="bookNow" class="mt-8 px-8 py-3 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white
-               hover:bg-white hover:text-black transition-all duration-300 shadow-lg animate-fadeInUp delay-300
-               w-full sm:w-auto max-w-xs">
-        Book Now
-      </button>
+      <!-- User Authentication Section -->
+      <div v-if="user" class="flex items-center space-x-4">
+        <!-- User Dropdown -->
+        <div class="relative">
+          <button @click="showUserMenu = !showUserMenu" 
+                  class="flex items-center space-x-2 text-gray-700 hover:text-[#7b1e3a] transition-colors">
+            <img :src="user.avatar || '/portrait.jpg'" 
+                 class="w-8 h-8 rounded-full object-cover border-2 border-[#7b1e3a]" 
+                 :alt="user.name" />
+            <span class="font-medium">{{ user.name }}</span>
+            <i class="fas fa-chevron-down text-xs"></i>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div v-if="showUserMenu" 
+               @click="showUserMenu = false"
+               class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <RouterLink to="/dashboard" 
+                        class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
+              <i class="fas fa-tachometer-alt mr-3"></i>
+              Dashboard
+            </RouterLink>
+            <RouterLink to="/profile" 
+                        class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
+              <i class="fas fa-user mr-3"></i>
+              Profile
+            </RouterLink>
+            <RouterLink to="/my-bookings" 
+                        class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
+              <i class="fas fa-calendar-alt mr-3"></i>
+              My Bookings
+            </RouterLink>
+            <hr class="my-2">
+            <button @click="logout" 
+                    class="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-red-600">
+              <i class="fas fa-sign-out-alt mr-3"></i>
+              Logout
+            </button>
+          </div>
+        </div>
+        
+        <RouterLink to="/photographers" 
+                    class="px-6 py-2 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white hover:bg-white hover:text-[#7b1e3a] transition-all duration-300 shadow-lg">
+          Book Session
+        </RouterLink>
+      </div>
+      
+      <!-- Guest Authentication Links -->
+      <div v-else class="flex items-center space-x-4">
+        <RouterLink to="/login" 
+                    class="text-[#7b1e3a] hover:text-black font-medium transition-colors">
+          Sign In
+        </RouterLink>
+        <RouterLink to="/register" 
+                    class="px-6 py-2 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white hover:bg-white hover:text-[#7b1e3a] transition-all duration-300 shadow-lg">
+          Sign Up
+        </RouterLink>
+      </div>
     </div>
 
 
@@ -71,6 +134,16 @@
     <transition name="fade">
       <div v-if="isMenuOpen" class="fixed top-16 left-0 w-full bg-white shadow-lg p-6 z-50 md:hidden">
         <ul class="flex flex-col gap-4 text-lg font-medium">
+          <li>
+            <RouterLink 
+              to="/" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              Home
+            </RouterLink>
+          </li>
           <li>
             <RouterLink 
               to="/shots" 
@@ -111,7 +184,53 @@
               Contact
             </RouterLink>
           </li>
-          <li>
+          <li v-if="user">
+            <RouterLink 
+              to="/dashboard" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              <i class="fas fa-tachometer-alt mr-2"></i>
+              Dashboard
+            </RouterLink>
+          </li>
+          <li v-if="user">
+            <button @click="logout; isMenuOpen = false" 
+                    class="hover:text-red-600 cursor-pointer transition-colors block py-2 w-full text-left">
+              <i class="fas fa-sign-out-alt mr-2"></i>
+              Logout
+            </button>
+          </li>
+          <li v-if="!user">
+            <RouterLink 
+              to="/login" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              Sign In
+            </RouterLink>
+          </li>
+          <li v-if="!user">
+            <RouterLink 
+              to="/register" 
+              @click="isMenuOpen = false" 
+              class="hover:text-black cursor-pointer transition-colors block py-2"
+              active-class="text-black font-semibold"
+            >
+              <i class="fas fa-user-plus mr-2"></i>
+              Sign Up
+            </RouterLink>
+          </li>
+          <li v-if="user">
+            <RouterLink to="/photographers" @click="isMenuOpen = false"
+                        class="mt-4 w-full border-2 border-[#7b1e3a] bg-[#7b1e3a] text-white px-5 py-2 rounded-lg hover:bg-white hover:text-[#7b1e3a] transition-colors block text-center">
+              Book Session
+            </RouterLink>
+          </li>
+          <li v-else>
             <button
             @click="bookNow"
               class="mt-4 w-full border-2 border-[#7b1e3a] bg-[#7b1e3a] text-white px-5 py-2 rounded-lg hover:bg-white hover:text-[#7b1e3a] transition-colors">
@@ -125,18 +244,80 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { RouterLink } from "vue-router";
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 const router = useRouter();
 const isMenuOpen = ref(false);
+const showUserMenu = ref(false);
+const user = ref(null);
 
 const bookNow = () => {
   console.log('clicked')
   router.push('/photographers')
   isMenuOpen.value = false; // Close mobile menu after navigation
 }
+
+const logout = () => {
+  localStorage.removeItem('user');
+  user.value = null;
+  showUserMenu.value = false;
+  
+  // Emit custom logout event
+  window.dispatchEvent(new CustomEvent('userLogout'));
+  
+  toast.success('Logged out successfully!');
+  router.push('/');
+}
+
+const handleStorageChange = (e) => {
+  if (e.key === 'user') {
+    if (e.newValue) {
+      user.value = JSON.parse(e.newValue);
+    } else {
+      user.value = null;
+    }
+  }
+};
+
+const handleUserLogin = (e) => {
+  user.value = e.detail;
+};
+
+const handleUserLogout = () => {
+  user.value = null;
+};
+
+const handleClickOutside = (e) => {
+  if (!e.target.closest('.relative')) {
+    showUserMenu.value = false;
+  }
+};
+
+// Check for user session on component mount
+onMounted(() => {
+  const userData = localStorage.getItem('user');
+  if (userData) {
+    user.value = JSON.parse(userData);
+  }
+  
+  // Add event listeners
+  window.addEventListener('storage', handleStorageChange);
+  window.addEventListener('userLogin', handleUserLogin);
+  window.addEventListener('userLogout', handleUserLogout);
+  document.addEventListener('click', handleClickOutside);
+});
+
+// Cleanup event listeners on component unmount
+onUnmounted(() => {
+  window.removeEventListener('storage', handleStorageChange);
+  window.removeEventListener('userLogin', handleUserLogin);
+  window.removeEventListener('userLogout', handleUserLogout);
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <style scoped>

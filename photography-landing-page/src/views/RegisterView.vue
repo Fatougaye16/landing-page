@@ -67,12 +67,16 @@
               id="role"
               v-model="form.role"
               required
+              aria-describedby="role-help"
               class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a] focus:z-10 bg-white"
             >
               <option value="">Select account type</option>
               <option value="client">Client (Book photography sessions)</option>
               <option value="photographer">Photographer (Offer photography services)</option>
             </select>
+            <div id="role-help" class="mt-1 text-xs text-gray-600">
+              Choose the type of account that best describes your needs
+            </div>
           </div>
 
           <!-- Conditional Fields for Photographers -->
@@ -81,26 +85,31 @@
             
             <div>
               <label for="studioName" class="block text-sm font-medium text-gray-700 mb-1">
-                Studio Name
+                Studio Name <span class="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="studioName"
                 v-model="form.studioName"
                 type="text"
                 :required="form.role === 'photographer'"
+                aria-describedby="studio-help"
                 class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a]"
                 placeholder="e.g., Sunset Photography Studio"
               />
+              <div id="studio-help" class="mt-1 text-xs text-gray-600">
+                This will be displayed to potential clients
+              </div>
             </div>
             
             <div>
               <label for="specialization" class="block text-sm font-medium text-gray-700 mb-1">
-                Specialization
+                Specialization <span class="text-red-500" aria-label="required">*</span>
               </label>
               <select
                 id="specialization"
                 v-model="form.specialization"
                 :required="form.role === 'photographer'"
+                aria-describedby="specialization-help"
                 class="appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a] bg-white"
               >
                 <option value="">Select specialization</option>
@@ -110,21 +119,29 @@
                 <option value="commercial">Commercial Photography</option>
                 <option value="nature">Nature Photography</option>
               </select>
+              <div id="specialization-help" class="mt-1 text-xs text-gray-600">
+                Your primary area of photography expertise
+              </div>
             </div>
             
             <div>
               <label for="experience" class="block text-sm font-medium text-gray-700 mb-1">
-                Years of Experience
+                Years of Experience <span class="text-red-500" aria-label="required">*</span>
               </label>
               <input
                 id="experience"
                 v-model.number="form.experience"
                 type="number"
                 min="0"
+                max="50"
                 :required="form.role === 'photographer'"
+                aria-describedby="experience-help"
                 class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a]"
                 placeholder="e.g., 5"
               />
+              <div id="experience-help" class="mt-1 text-xs text-gray-600">
+                Number of years you've been practicing photography professionally
+              </div>
             </div>
           </div>
 
@@ -139,16 +156,21 @@
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
                 required
+                aria-describedby="password-help password-strength"
                 class="appearance-none relative block w-full px-3 py-3 pr-12 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a] focus:z-10"
                 placeholder="Create a password"
               />
               <button
                 type="button"
                 @click="showPassword = !showPassword"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
               >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
               </button>
+            </div>
+            <div id="password-help" class="mt-1 text-xs text-gray-600">
+              Password should be at least 8 characters with uppercase, lowercase, and numbers
             </div>
             <!-- Password Strength Indicator -->
             <div class="mt-2">

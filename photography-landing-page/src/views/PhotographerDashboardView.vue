@@ -1,31 +1,33 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Dashboard Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4">
+    <div class="bg-white shadow-sm border-b border-gray-200 dashboard-header">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div class="flex items-center space-x-3 sm:space-x-4">
             <img :src="photographer?.avatar || '/man-lens.jpg'" 
-                 class="w-12 h-12 rounded-full object-cover border-2 border-[#7b1e3a]" 
+                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-[#7b1e3a]" 
                  :alt="photographer?.name" />
             <div>
-              <h1 class="text-2xl font-bold text-gray-900">{{ photographer?.name }}'s Studio</h1>
-              <p class="text-gray-600">Manage your bookings and client galleries</p>
+              <h1 class="text-lg sm:text-2xl font-bold text-gray-900">{{ photographer?.name }}'s Studio</h1>
+              <p class="text-gray-600 text-sm sm:text-base">Manage your bookings and client galleries</p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
             <button @click="showNotifications = !showNotifications" 
-                    class="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <i class="fas fa-bell text-xl"></i>
+                    class="relative p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+                    aria-label="View notifications">
+              <i class="fas fa-bell text-lg sm:text-xl"></i>
               <span v-if="notifications.length > 0" 
-                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 {{ notifications.length }}
               </span>
             </button>
-            <button @click="logout" 
-                    class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
-              <i class="fas fa-sign-out-alt"></i>
-              <span class="font-medium">Logout</span>
+            <button @click="showLogoutConfirmation" 
+                    class="flex items-center space-x-1 sm:space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                    aria-label="Logout">
+              <i class="fas fa-sign-out-alt text-sm sm:text-base"></i>
+              <span class="font-medium text-sm sm:text-base hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
@@ -88,21 +90,23 @@
       <div class="bg-white rounded-xl shadow-md">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
-          <nav class="flex space-x-8 px-6">
+          <nav class="flex overflow-x-auto scrollbar-hide px-4 sm:px-6" style="scrollbar-width: none; -ms-overflow-style: none;">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               @click="activeTab = tab.id"
+              :data-tab="tab.id"
               :class="[
-                'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                'py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 mr-4 sm:mr-8',
                 activeTab === tab.id
                   ? 'border-[#7b1e3a] text-[#7b1e3a]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               ]"
             >
-              <i :class="tab.icon" class="mr-2"></i>
-              {{ tab.name }}
-              <span v-if="tab.count" class="ml-2 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+              <i :class="tab.icon" class="mr-1 sm:mr-2"></i>
+              <span class="hidden sm:inline">{{ tab.name }}</span>
+              <span class="sm:hidden">{{ tab.name.split(' ')[0] }}</span>
+              <span v-if="tab.count" class="ml-1 sm:ml-2 bg-gray-100 text-gray-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs">
                 {{ tab.count }}
               </span>
             </button>
@@ -154,17 +158,23 @@
                 <div class="mt-4 flex justify-end space-x-2">
                   <button v-if="appointment.status === 'pending'" 
                           @click="confirmAppointment(appointment)"
-                          class="btn btn-sm bg-green-600 hover:bg-green-700 text-white">
+                          class="btn btn-sm bg-green-600 hover:bg-green-700 text-white"
+                          :aria-label="`Confirm appointment with ${appointment.client}`">
+                    <i class="fas fa-check mr-1" aria-hidden="true"></i>
                     Confirm
                   </button>
                   <button v-if="appointment.status === 'pending'" 
                           @click="declineAppointment(appointment)"
-                          class="btn btn-sm btn-outline border-red-300 text-red-700 hover:bg-red-50">
+                          class="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+                          :aria-label="`Decline appointment with ${appointment.client}`">
+                    <i class="fas fa-times mr-1" aria-hidden="true"></i>
                     Decline
                   </button>
                   <button v-if="appointment.status === 'confirmed'" 
                           @click="rescheduleAppointment(appointment)"
-                          class="btn btn-sm btn-outline border-gray-300 text-gray-700 hover:bg-gray-50">
+                          class="btn btn-sm btn-outline border-gray-300 text-gray-700 hover:bg-gray-50"
+                          :aria-label="`Reschedule appointment with ${appointment.client}`">
+                    <i class="fas fa-calendar-alt mr-1" aria-hidden="true"></i>
                     Reschedule
                   </button>
                   <button v-if="appointment.status === 'confirmed'" 
@@ -401,6 +411,127 @@
         </div>
       </div>
     </div>
+
+    <!-- Logout Confirmation Dialog -->
+    <div v-if="showLogoutConfirm" 
+         @click="showLogoutConfirm = false"
+         class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4">
+      <div @click.stop 
+           class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-xl">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-3 sm:mr-4">
+            <i class="fas fa-sign-out-alt text-yellow-600 text-lg sm:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Confirm Logout</h3>
+            <p class="text-xs sm:text-sm text-gray-600">Are you sure you want to logout?</p>
+          </div>
+        </div>
+        <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+          You will need to login again to access your photographer dashboard.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+          <button @click="showLogoutConfirm = false" 
+                  class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base">
+            Cancel
+          </button>
+          <button @click="logout" 
+                  class="btn bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base">
+            <i class="fas fa-sign-out-alt mr-1 sm:mr-2"></i>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div v-if="showOnboarding" 
+         class="fixed inset-0 z-50 bg-black bg-opacity-50">
+      <div class="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+            <div class="flex items-center mb-3 sm:mb-0">
+              <div class="w-8 h-8 bg-[#7b1e3a] rounded-full flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
+                {{ onboardingStep + 1 }}
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900">{{ onboardingSteps[onboardingStep].title }}</h3>
+                <p class="text-xs sm:text-sm text-gray-600">Step {{ onboardingStep + 1 }} of {{ onboardingSteps.length }}</p>
+              </div>
+            </div>
+            <button @click="skipOnboarding" 
+                    class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Skip tour">
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
+          
+          <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+            {{ onboardingSteps[onboardingStep].description }}
+          </p>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-4 sm:mb-6">
+            <div class="bg-[#7b1e3a] h-2 rounded-full transition-all duration-300" 
+                 :style="`width: ${((onboardingStep + 1) / onboardingSteps.length) * 100}%`"></div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
+            <button v-if="onboardingStep > 0" 
+                    @click="previousStep" 
+                    class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1">
+              <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
+              Previous
+            </button>
+            <div v-else class="hidden sm:block"></div>
+            
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 order-1 sm:order-2">
+              <button @click="skipOnboarding" 
+                      class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base">
+                Skip Tour
+              </button>
+              <button @click="nextStep" 
+                      class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white text-sm sm:text-base">
+                {{ onboardingStep === onboardingSteps.length - 1 ? 'Get Started' : 'Next' }}
+                <i v-if="onboardingStep < onboardingSteps.length - 1" class="fas fa-arrow-right ml-1 sm:ml-2"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Dialog -->
+    <div v-if="hasError" 
+         @click="dismissError"
+         class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4">
+      <div @click.stop 
+           class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-xl border-l-4 border-red-500">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center mr-3 sm:mr-4">
+            <i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Something went wrong</h3>
+            <p class="text-xs sm:text-sm text-gray-600">We encountered an error</p>
+          </div>
+        </div>
+        <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+          {{ errorMessage || 'An unexpected error occurred. Please try again or contact support if the problem persists.' }}
+        </p>
+        <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+          <button @click="dismissError" 
+                  class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base">
+            Dismiss
+          </button>
+          <button v-if="retryAction" 
+                  @click="handleRetry" 
+                  class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white text-sm sm:text-base">
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -434,6 +565,47 @@ const newAlbum = ref({
   client: '',
   status: 'unedited'
 })
+
+// Loading states and UI improvements
+const isLoading = ref(false)
+const isUploading = ref(false)
+const uploadProgress = ref(0)
+const loadingMessage = ref('')
+const showDeleteConfirm = ref(false)
+const showLogoutConfirm = ref(false)
+const confirmAction = ref(null)
+const confirmData = ref(null)
+const hasError = ref(false)
+const errorMessage = ref('')
+const retryAction = ref(null)
+const showOnboarding = ref(false)
+const onboardingStep = ref(0)
+const onboardingSteps = ref([
+  {
+    title: 'Welcome to Your Photography Studio!',
+    description: 'This is your professional dashboard to manage clients, appointments, and photo galleries.',
+    target: '.dashboard-header',
+    position: 'bottom'
+  },
+  {
+    title: 'Manage Your Appointments',
+    description: 'View and manage all your photography sessions and client bookings.',
+    target: '[data-tab="appointments"]',
+    position: 'bottom'
+  },
+  {
+    title: 'Client Photo Albums',
+    description: 'Upload and organize client photos, create galleries for client review.',
+    target: '[data-tab="albums"]',
+    position: 'bottom'
+  },
+  {
+    title: 'Your Studio Profile',
+    description: 'Update your studio information, pricing, and portfolio details.',
+    target: '[data-tab="profile"]',
+    position: 'bottom'
+  }
+])
 
 const tabs = computed(() => [
   { id: 'appointments', name: 'Appointments', icon: 'fas fa-calendar-alt', count: appointments.value.length },
@@ -597,7 +769,79 @@ const createAlbum = () => {
   showUploadModal.value = false
 }
 
+// UI improvement functions
+const showConfirmation = (message, action, data = null) => {
+  confirmAction.value = action
+  confirmData.value = data
+  showDeleteConfirm.value = true
+}
+
+const confirmActionHandler = () => {
+  if (confirmAction.value) {
+    confirmAction.value(confirmData.value)
+  }
+  showDeleteConfirm.value = false
+  confirmAction.value = null
+  confirmData.value = null
+}
+
+const cancelConfirmation = () => {
+  showDeleteConfirm.value = false
+  confirmAction.value = null
+  confirmData.value = null
+}
+
+const showError = (message, retry = null) => {
+  hasError.value = true
+  errorMessage.value = message
+  retryAction.value = retry
+}
+
+const dismissError = () => {
+  hasError.value = false
+  errorMessage.value = ''
+  retryAction.value = null
+}
+
+const handleRetry = () => {
+  if (retryAction.value) {
+    dismissError()
+    retryAction.value()
+  }
+}
+
+// Onboarding functions
+const skipOnboarding = () => {
+  showOnboarding.value = false
+  localStorage.setItem('photographer-onboarding-complete', 'true')
+}
+
+const nextStep = () => {
+  if (onboardingStep.value < onboardingSteps.value.length - 1) {
+    onboardingStep.value++
+  } else {
+    completeOnboarding()
+  }
+}
+
+const previousStep = () => {
+  if (onboardingStep.value > 0) {
+    onboardingStep.value--
+  }
+}
+
+const completeOnboarding = () => {
+  showOnboarding.value = false
+  localStorage.setItem('photographer-onboarding-complete', 'true')
+  toast.success('Welcome to your photography studio! You\'re ready to manage your business.')
+}
+
+const showLogoutConfirmation = () => {
+  showLogoutConfirm.value = true
+}
+
 const logout = () => {
+  showLogoutConfirm.value = false
   localStorage.removeItem('user')
   localStorage.removeItem('photographer')
   photographer.value = null
@@ -631,6 +875,14 @@ onMounted(() => {
       basePrice: photographer.value.basePrice || 0,
       specialization: photographer.value.specialization || 'portrait'
     }
+    
+    // Check if onboarding should be shown
+    const onboardingComplete = localStorage.getItem('photographer-onboarding-complete')
+    if (!onboardingComplete) {
+      setTimeout(() => {
+        showOnboarding.value = true
+      }, 1000) // Show after 1 second delay
+    }
   } else {
     // Check if user is logged in and is a photographer
     const userData = localStorage.getItem('user')
@@ -647,6 +899,14 @@ onMounted(() => {
           experience: user.experience || 0,
           basePrice: user.basePrice || 0,
           specialization: user.specialization || 'portrait'
+        }
+        
+        // Check if onboarding should be shown
+        const onboardingComplete = localStorage.getItem('photographer-onboarding-complete')
+        if (!onboardingComplete) {
+          setTimeout(() => {
+            showOnboarding.value = true
+          }, 1000) // Show after 1 second delay
         }
       } else {
         router.push('/dashboard') // Redirect clients to their dashboard

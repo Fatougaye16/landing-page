@@ -1,34 +1,34 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Dashboard Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4">
+    <div class="bg-white shadow-sm border-b border-gray-200 dashboard-header">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div class="flex items-center space-x-3 sm:space-x-4">
             <img :src="user?.avatar || '/portrait.jpg'" 
-                 class="w-12 h-12 rounded-full object-cover border-2 border-[#7b1e3a]" 
+                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-[#7b1e3a]" 
                  :alt="user?.name" />
             <div>
-              <h1 class="text-2xl font-bold text-gray-900">Welcome back, {{ user?.name }}!</h1>
-              <p class="text-gray-600">Manage your bookings and photo gallery</p>
+              <h1 class="text-lg sm:text-2xl font-bold text-gray-900">Welcome back, {{ user?.name }}!</h1>
+              <p class="text-gray-600 text-sm sm:text-base">Manage your bookings and photo gallery</p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
             <button @click="showNotifications = !showNotifications" 
-                    class="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <i class="fas fa-bell text-xl"></i>
+                    class="relative p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100">
+              <i class="fas fa-bell text-lg sm:text-xl"></i>
               <span v-if="notifications.length > 0" 
-                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 {{ notifications.length }}
               </span>
             </button>
-            <button @click="logout" 
-                    class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
-              <i class="fas fa-sign-out-alt"></i>
-              <span class="font-medium">Logout</span>
+            <button @click="showLogoutConfirmation" 
+                    class="flex items-center space-x-1 sm:space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
+              <i class="fas fa-sign-out-alt text-sm sm:text-base"></i>
+              <span class="font-medium text-sm sm:text-base hidden sm:inline">Logout</span>
             </button>
             <RouterLink to="/photographers" 
-                        class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white px-6">
+                        class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white px-3 sm:px-6 text-sm sm:text-base">
               Book New Session
             </RouterLink>
           </div>
@@ -92,21 +92,23 @@
       <div class="bg-white rounded-xl shadow-md">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
-          <nav class="flex space-x-8 px-6">
+          <nav class="flex overflow-x-auto scrollbar-hide px-4 sm:px-6" style="scrollbar-width: none; -ms-overflow-style: none;">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               @click="activeTab = tab.id"
+              :data-tab="tab.id"
               :class="[
-                'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                'py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 mr-4 sm:mr-8',
                 activeTab === tab.id
                   ? 'border-[#7b1e3a] text-[#7b1e3a]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               ]"
             >
-              <i :class="tab.icon" class="mr-2"></i>
-              {{ tab.name }}
-              <span v-if="tab.count" class="ml-2 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+              <i :class="tab.icon" class="mr-1 sm:mr-2"></i>
+              <span class="hidden sm:inline">{{ tab.name }}</span>
+              <span class="sm:hidden">{{ tab.name.split(' ')[0] }}</span>
+              <span v-if="tab.count" class="ml-1 sm:ml-2 bg-gray-100 text-gray-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs">
                 {{ tab.count }}
               </span>
             </button>
@@ -119,7 +121,8 @@
           <div v-if="activeTab === 'bookings'" class="space-y-6">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold text-gray-900">Your Bookings</h3>
-              <select v-model="bookingFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <select v-model="bookingFilter" 
+                      class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:border-[#7b1e3a] focus:ring-1 focus:ring-[#7b1e3a]">
                 <option value="all">All Bookings</option>
                 <option value="upcoming">Upcoming</option>
                 <option value="completed">Completed</option>
@@ -270,8 +273,8 @@
          @click="showNotifications = false"
          class="fixed inset-0 z-50 bg-black bg-opacity-25">
       <div @click.stop 
-           class="absolute top-16 right-6 w-80 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto">
-        <div class="p-4 border-b border-gray-200">
+           class="absolute top-16 right-2 sm:right-6 w-80 sm:w-96 max-w-[calc(100vw-1rem)] bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto">
+        <div class="p-3 sm:p-4 border-b border-gray-200">
           <h3 class="font-semibold text-gray-900">Notifications</h3>
         </div>
         <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
@@ -279,17 +282,17 @@
         </div>
         <div v-else>
           <div v-for="notification in notifications" :key="notification.id" 
-               class="p-4 border-b border-gray-100 hover:bg-gray-50">
-            <div class="flex items-start space-x-3">
+               class="p-3 sm:p-4 border-b border-gray-100 hover:bg-gray-50">
+            <div class="flex items-start space-x-2 sm:space-x-3">
               <div :class="[
-                'w-2 h-2 rounded-full mt-2',
+                'w-2 h-2 rounded-full mt-2 flex-shrink-0',
                 notification.type === 'booking' ? 'bg-blue-500' :
                 notification.type === 'photos' ? 'bg-green-500' :
                 'bg-yellow-500'
               ]"></div>
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
-                <p class="text-sm text-gray-600">{{ notification.message }}</p>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ notification.title }}</p>
+                <p class="text-sm text-gray-600 line-clamp-2">{{ notification.message }}</p>
                 <p class="text-xs text-gray-400 mt-1">{{ notification.time }}</p>
               </div>
             </div>
@@ -301,17 +304,17 @@
     <!-- Album Viewer Modal -->
     <div v-if="showAlbumViewer && selectedAlbum" 
          @click="closeAlbumViewer"
-         class="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+         class="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-2 sm:p-4">
       <div @click.stop 
-           class="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+           class="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">{{ selectedAlbum.title }}</h2>
-            <div class="flex items-center space-x-4 mt-1">
-              <p class="text-gray-600">{{ selectedAlbum.photographer }} • {{ selectedAlbum.date }}</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <div class="mb-3 sm:mb-0">
+            <h2 class="text-lg sm:text-2xl font-bold text-gray-900">{{ selectedAlbum.title }}</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-1">
+              <p class="text-gray-600 text-sm sm:text-base">{{ selectedAlbum.photographer }} • {{ selectedAlbum.date }}</p>
               <span :class="[
-                'inline-block px-3 py-1 rounded-full text-xs font-medium',
+                'inline-block px-2 sm:px-3 py-1 rounded-full text-xs font-medium self-start',
                 selectedAlbum.status === 'edited' 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-orange-100 text-orange-800'
@@ -322,8 +325,8 @@
             </div>
           </div>
           <button @click="closeAlbumViewer" 
-                  class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-            <i class="fas fa-times text-xl"></i>
+                  class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto p-2 text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-lg sm:text-xl"></i>
           </button>
         </div>
 
@@ -336,9 +339,12 @@
                 <h3 class="text-lg font-semibold text-gray-900">Ready for Download</h3>
                 <p class="text-sm text-gray-600">{{ selectedAlbum.photos.length }} edited photo(s) available</p>
               </div>
-              <button @click="downloadAllPhotos" class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white">
-                <i class="fas fa-download mr-2"></i>
-                Download All ({{ selectedAlbum.photos.length }})
+              <button @click="downloadAllPhotos" 
+                      :disabled="isLoading"
+                      class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                <i v-if="isLoading && loadingMessage === 'downloading'" class="fas fa-spinner fa-spin mr-2"></i>
+                <i v-else class="fas fa-download mr-2"></i>
+                {{ isLoading && loadingMessage === 'downloading' ? 'Downloading...' : `Download All (${selectedAlbum.photos.length})` }}
               </button>
             </div>
             
@@ -383,15 +389,22 @@
                   <span class="text-sm font-medium text-gray-700">Select All</span>
                 </label>
                 <button @click="requestEditing" 
-                        :disabled="selectedPhotos.length === 0"
+                        :disabled="selectedPhotos.length === 0 || isLoading"
                         :class="[
-                          'btn text-white',
-                          selectedPhotos.length > 0 
+                          'btn text-white disabled:opacity-50 disabled:cursor-not-allowed',
+                          selectedPhotos.length > 0 && !isLoading
                             ? 'bg-[#7b1e3a] hover:bg-[#5c162c]' 
                             : 'bg-gray-400 cursor-not-allowed'
                         ]">
-                  <i class="fas fa-edit mr-2"></i>
-                  Request Editing ({{ selectedPhotos.length }})
+                  <i v-if="isLoading && loadingMessage === 'requesting'" class="fas fa-spinner fa-spin mr-2"></i>
+                  <i v-else class="fas fa-edit mr-2"></i>
+                  {{ isLoading && loadingMessage === 'requesting' ? 'Sending Request...' : `Request Editing (${selectedPhotos.length})` }}
+                </button>
+                <button v-if="selectedPhotos.length > 0" 
+                        @click="showDeleteConfirmation"
+                        class="btn btn-outline border-red-300 text-red-700 hover:bg-red-50">
+                  <i class="fas fa-trash mr-2"></i>
+                  Remove Selected
                 </button>
               </div>
             </div>
@@ -421,18 +434,22 @@
 
                 <!-- Selection Checkbox -->
                 <div class="absolute top-2 left-2">
-                  <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" 
+                  <label class="flex items-center cursor-pointer" :for="`photo-${photo.id}`">
+                    <input :id="`photo-${photo.id}`"
+                           type="checkbox" 
                            v-model="photo.selected" 
                            @change="updateSelectedPhotos"
+                           :aria-label="`Select ${photo.filename} for editing`"
                            class="rounded border-gray-300 text-[#7b1e3a] focus:ring-[#7b1e3a] shadow-lg" />
+                    <span class="sr-only">Select {{ photo.filename }} for editing</span>
                   </label>
                 </div>
 
                 <!-- Selected Badge -->
                 <div v-if="photo.selected" 
-                     class="absolute top-2 right-2 bg-[#7b1e3a] text-white p-1 rounded-full">
-                  <i class="fas fa-check text-xs"></i>
+                     class="absolute top-2 right-2 bg-[#7b1e3a] text-white p-1 rounded-full"
+                     aria-label="Photo selected">
+                  <i class="fas fa-check text-xs" aria-hidden="true"></i>
                 </div>
 
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
@@ -440,6 +457,157 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div v-if="showOnboarding" 
+         class="fixed inset-0 z-50 bg-black bg-opacity-50">
+      <div class="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+            <div class="flex items-center mb-3 sm:mb-0">
+              <div class="w-8 h-8 bg-[#7b1e3a] rounded-full flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
+                {{ onboardingStep + 1 }}
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900">{{ onboardingSteps[onboardingStep].title }}</h3>
+                <p class="text-xs sm:text-sm text-gray-600">Step {{ onboardingStep + 1 }} of {{ onboardingSteps.length }}</p>
+              </div>
+            </div>
+            <button @click="skipOnboarding" 
+                    class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Skip tour">
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
+          
+          <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+            {{ onboardingSteps[onboardingStep].description }}
+          </p>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-4 sm:mb-6">
+            <div class="bg-[#7b1e3a] h-2 rounded-full transition-all duration-300" 
+                 :style="`width: ${((onboardingStep + 1) / onboardingSteps.length) * 100}%`"></div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
+            <button v-if="onboardingStep > 0" 
+                    @click="previousStep" 
+                    class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1">
+              <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
+              Previous
+            </button>
+            <div v-else class="hidden sm:block"></div>
+            
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 order-1 sm:order-2">
+              <button @click="skipOnboarding" 
+                      class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base">
+                Skip Tour
+              </button>
+              <button @click="nextStep" 
+                      class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white text-sm sm:text-base">
+                {{ onboardingStep === onboardingSteps.length - 1 ? 'Get Started' : 'Next' }}
+                <i v-if="onboardingStep < onboardingSteps.length - 1" class="fas fa-arrow-right ml-1 sm:ml-2"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Dialog -->
+    <div v-if="hasError" 
+         @click="dismissError"
+         class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div @click.stop 
+           class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border-l-4 border-red-500">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Something went wrong</h3>
+            <p class="text-sm text-gray-600">We encountered an error</p>
+          </div>
+        </div>
+        <p class="text-gray-600 mb-6">
+          {{ errorMessage || 'An unexpected error occurred. Please try again or contact support if the problem persists.' }}
+        </p>
+        <div class="flex justify-end space-x-4">
+          <button @click="dismissError" 
+                  class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50">
+            Dismiss
+          </button>
+          <button v-if="retryAction" 
+                  @click="handleRetry" 
+                  class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white">
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div v-if="showDeleteConfirm || showLogoutConfirm" 
+         @click="cancelConfirmation"
+         class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div @click.stop 
+           class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+        <!-- Delete Confirmation -->
+        <div v-if="showDeleteConfirm">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+              <i class="fas fa-trash text-red-600 text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Delete Selected Photos?</h3>
+              <p class="text-sm text-gray-600">You have {{ selectedPhotos.length }} photo(s) selected</p>
+            </div>
+          </div>
+          <p class="text-gray-600 mb-6">
+            This will remove the selected photos from your edit request. This action cannot be undone.
+          </p>
+          <div class="flex justify-end space-x-4">
+            <button @click="cancelConfirmation" 
+                    class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button @click="confirmDeleteAction" 
+                    :disabled="isLoading"
+                    class="btn bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
+              <i v-if="isLoading" class="fas fa-spinner fa-spin mr-2"></i>
+              Delete Photos
+            </button>
+          </div>
+        </div>
+
+        <!-- Logout Confirmation -->
+        <div v-if="showLogoutConfirm">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+              <i class="fas fa-sign-out-alt text-yellow-600 text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Sign Out?</h3>
+              <p class="text-sm text-gray-600">You will be redirected to the home page</p>
+            </div>
+          </div>
+          <p class="text-gray-600 mb-6">
+            Are you sure you want to sign out? Any unsaved changes will be lost.
+          </p>
+          <div class="flex justify-end space-x-4">
+            <button @click="cancelConfirmation" 
+                    class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button @click="confirmLogoutAction" 
+                    class="btn bg-yellow-600 hover:bg-yellow-700 text-white">
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -464,6 +632,45 @@ const selectedAlbum = ref(null)
 const albumViewerTab = ref('edited')
 const selectedPhotos = ref([])
 const selectAll = ref(false)
+const isLoading = ref(false)
+const isUploading = ref(false)
+const uploadProgress = ref(0)
+const loadingMessage = ref('')
+const showDeleteConfirm = ref(false)
+const showLogoutConfirm = ref(false)
+const confirmAction = ref(null)
+const confirmData = ref(null)
+const hasError = ref(false)
+const errorMessage = ref('')
+const retryAction = ref(null)
+const showOnboarding = ref(false)
+const onboardingStep = ref(0)
+const onboardingSteps = ref([
+  {
+    title: 'Welcome to Your Dashboard!',
+    description: 'This is your personal space to manage all your photography bookings and photos.',
+    target: '.dashboard-header',
+    position: 'bottom'
+  },
+  {
+    title: 'View Your Bookings',
+    description: 'Here you can see all your upcoming and past photography sessions.',
+    target: '[data-tab="bookings"]',
+    position: 'bottom'
+  },
+  {
+    title: 'Access Your Photos',
+    description: 'Browse and download your photos, or request edits from photographers.',
+    target: '[data-tab="photos"]',
+    position: 'bottom'
+  },
+  {
+    title: 'Manage Your Profile',
+    description: 'Update your personal information and preferences.',
+    target: '[data-tab="profile"]',
+    position: 'bottom'
+  }
+])
 
 const profileForm = ref({
   name: '',
@@ -630,34 +837,108 @@ const toggleSelectAll = () => {
   }
 }
 
-const requestEditing = () => {
+const requestEditing = async () => {
   if (selectedPhotos.value.length === 0) return
   
-  const photoNames = selectedPhotos.value.map(photo => photo.filename).join(', ')
-  toast.success(`Edit request sent for ${selectedPhotos.value.length} photo(s) to ${selectedAlbum.value.photographer}`)
+  isLoading.value = true
+  loadingMessage.value = 'requesting'
   
-  // Reset selections
-  selectedAlbum.value.photos.forEach(photo => {
-    photo.selected = false
-  })
-  updateSelectedPhotos()
+  try {
+    // Simulate API call
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simulate random failure for demo
+        if (Math.random() > 0.8) {
+          reject(new Error('Network connection failed'))
+        } else {
+          resolve()
+        }
+      }, 2000)
+    })
+    
+    const photoNames = selectedPhotos.value.map(photo => photo.filename).join(', ')
+    toast.success(`Edit request sent for ${selectedPhotos.value.length} photo(s) to ${selectedAlbum.value.photographer}`)
+    
+    // Reset selections
+    selectedAlbum.value.photos.forEach(photo => {
+      photo.selected = false
+    })
+    updateSelectedPhotos()
+  } catch (error) {
+    console.error('Edit request failed:', error)
+    showError(
+      'Failed to send edit request. Please check your internet connection and try again.',
+      () => requestEditing()
+    )
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = ''
+  }
 }
 
-const downloadPhoto = (photo) => {
-  toast.info(`Downloading ${photo.filename}...`)
-  // In a real app, this would trigger an actual download
+const downloadPhoto = async (photo) => {
+  isLoading.value = true
+  loadingMessage.value = 'downloading'
+  
+  try {
+    // Simulate download
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    toast.success(`Downloaded ${photo.filename}`)
+  } catch (error) {
+    toast.error('Download failed. Please try again.')
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = ''
+  }
 }
 
-const downloadAllPhotos = (album = null) => {
+const downloadAllPhotos = async (album = null) => {
   const targetAlbum = album || selectedAlbum.value
   if (targetAlbum && targetAlbum.status === 'edited') {
-    toast.success(`Downloading all ${targetAlbum.photos.length} photos from ${targetAlbum.title}`)
-    // In a real app, this would trigger a zip download
+    isLoading.value = true
+    loadingMessage.value = 'downloading'
+    
+    try {
+      // Simulate zip download
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      toast.success(`Downloaded all ${targetAlbum.photos.length} photos from ${targetAlbum.title}`)
+    } catch (error) {
+      toast.error('Download failed. Please try again.')
+    } finally {
+      isLoading.value = false
+      loadingMessage.value = ''
+    }
   }
 }
 
 const viewFullscreen = (photo) => {
   toast.info('Fullscreen viewer coming soon!')
+}
+
+// Onboarding functions
+const skipOnboarding = () => {
+  showOnboarding.value = false
+  localStorage.setItem('dashboard-onboarding-complete', 'true')
+}
+
+const nextStep = () => {
+  if (onboardingStep.value < onboardingSteps.value.length - 1) {
+    onboardingStep.value++
+  } else {
+    completeOnboarding()
+  }
+}
+
+const previousStep = () => {
+  if (onboardingStep.value > 0) {
+    onboardingStep.value--
+  }
+}
+
+const completeOnboarding = () => {
+  showOnboarding.value = false
+  localStorage.setItem('dashboard-onboarding-complete', 'true')
+  toast.success('Welcome! You\'re all set to start managing your albums.')
 }
 
 const logout = () => {
@@ -669,6 +950,70 @@ const logout = () => {
   
   toast.success('Logged out successfully!')
   router.push('/')
+}
+
+const showLogoutConfirmation = () => {
+  showLogoutConfirm.value = true
+}
+
+const confirmLogoutAction = () => {
+  showLogoutConfirm.value = false
+  logout()
+}
+
+const showDeleteConfirmation = () => {
+  if (selectedPhotos.value.length === 0) {
+    toast.error('No photos selected')
+    return
+  }
+  showDeleteConfirm.value = true
+}
+
+const confirmDeleteAction = async () => {
+  isLoading.value = true
+  
+  try {
+    // Simulate deletion
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    selectedAlbum.value.photos.forEach(photo => {
+      photo.selected = false
+    })
+    updateSelectedPhotos()
+    
+    toast.success('Selected photos removed from edit request')
+  } catch (error) {
+    toast.error('Failed to remove photos. Please try again.')
+  } finally {
+    isLoading.value = false
+    showDeleteConfirm.value = false
+  }
+}
+
+const cancelConfirmation = () => {
+  showDeleteConfirm.value = false
+  showLogoutConfirm.value = false
+  confirmAction.value = null
+  confirmData.value = null
+}
+
+const showError = (message, retry = null) => {
+  hasError.value = true
+  errorMessage.value = message
+  retryAction.value = retry
+}
+
+const dismissError = () => {
+  hasError.value = false
+  errorMessage.value = ''
+  retryAction.value = null
+}
+
+const handleRetry = () => {
+  if (retryAction.value) {
+    dismissError()
+    retryAction.value()
+  }
 }
 
 const updateProfile = () => {
@@ -688,6 +1033,14 @@ onMounted(() => {
       email: user.value.email || '',
       phone: user.value.phone || '',
       preferredContact: 'email'
+    }
+    
+    // Check if onboarding should be shown
+    const onboardingComplete = localStorage.getItem('dashboard-onboarding-complete')
+    if (!onboardingComplete) {
+      setTimeout(() => {
+        showOnboarding.value = true
+      }, 1000) // Show after 1 second delay
     }
   } else {
     router.push('/login?redirect=/dashboard')

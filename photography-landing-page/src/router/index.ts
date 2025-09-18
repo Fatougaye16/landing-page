@@ -54,19 +54,33 @@ const router = createRouter({
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/photographer-dashboard',
+      name: 'photographer-dashboard',
+      component: () => import('@/views/PhotographerDashboardView.vue'),
+      meta: { requiresAuth: true, requiresPhotographer: true },
+    },
   ],
 })
 
 // Navigation guard for protected routes
 router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user')
+  const userData = localStorage.getItem('user')
+  const user = userData ? JSON.parse(userData) : null
   
   if (to.meta.requiresAuth && !user) {
     // Redirect to login if route requires auth and user is not logged in
     next({ name: 'login', query: { redirect: to.fullPath } })
+  } else if (to.meta.requiresPhotographer && (!user || user.role !== 'photographer')) {
+    // Redirect to login if route requires photographer role
+    next({ name: 'login', query: { redirect: to.fullPath } })
   } else if ((to.name === 'login' || to.name === 'register') && user) {
-    // Redirect to dashboard if user is already logged in and trying to access auth pages
-    next({ name: 'dashboard' })
+    // Redirect to appropriate dashboard if user is already logged in
+    if (user.role === 'photographer') {
+      next({ name: 'photographer-dashboard' })
+    } else {
+      next({ name: 'dashboard' })
+    }
   } else {
     next()
   }

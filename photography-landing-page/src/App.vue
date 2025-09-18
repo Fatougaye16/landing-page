@@ -7,7 +7,11 @@ const route = useRoute()
 
 <template>
   <NavBar />
-  <div :class="{ 'pt-20': route.name !== 'home' }">
+  <div :class="{ 
+    'pt-20': route.name !== 'home' && 
+             route.name !== 'dashboard' && 
+             route.name !== 'photographer-dashboard' 
+  }">
     <RouterView />
   </div>
 </template>

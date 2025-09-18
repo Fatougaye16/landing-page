@@ -81,17 +81,22 @@
           <div v-if="showUserMenu" 
                @click="showUserMenu = false"
                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-            <RouterLink to="/dashboard" 
+            <RouterLink :to="user.role === 'photographer' ? '/photographer-dashboard' : '/dashboard'" 
                         class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
               <i class="fas fa-tachometer-alt mr-3"></i>
-              Dashboard
+              {{ user.role === 'photographer' ? 'Studio Dashboard' : 'Dashboard' }}
             </RouterLink>
-            <RouterLink to="/profile" 
+            <RouterLink v-if="user.role === 'photographer'" to="/photographers" 
+                        class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
+              <i class="fas fa-camera mr-3"></i>
+              My Profile
+            </RouterLink>
+            <RouterLink v-if="user.role !== 'photographer'" to="/profile" 
                         class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
               <i class="fas fa-user mr-3"></i>
               Profile
             </RouterLink>
-            <RouterLink to="/my-bookings" 
+            <RouterLink v-if="user.role !== 'photographer'" to="/my-bookings" 
                         class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#7b1e3a]">
               <i class="fas fa-calendar-alt mr-3"></i>
               My Bookings
@@ -105,7 +110,7 @@
           </div>
         </div>
         
-        <RouterLink to="/photographers" 
+        <RouterLink v-if="user.role !== 'photographer'" to="/photographers" 
                     class="px-6 py-2 rounded-full border border-[#7b1e3a] bg-[#7b1e3a] text-white hover:bg-white hover:text-[#7b1e3a] transition-all duration-300 shadow-lg">
           Book Session
         </RouterLink>
@@ -186,13 +191,13 @@
           </li>
           <li v-if="user">
             <RouterLink 
-              to="/dashboard" 
+              :to="user.role === 'photographer' ? '/photographer-dashboard' : '/dashboard'" 
               @click="isMenuOpen = false" 
               class="hover:text-black cursor-pointer transition-colors block py-2"
               active-class="text-black font-semibold"
             >
               <i class="fas fa-tachometer-alt mr-2"></i>
-              Dashboard
+              {{ user.role === 'photographer' ? 'Studio Dashboard' : 'Dashboard' }}
             </RouterLink>
           </li>
           <li v-if="user">
@@ -257,7 +262,7 @@ const showUserMenu = ref(false);
 const user = ref(null);
 
 // Check if current page is dashboard
-const isDashboardPage = computed(() => route.name === 'dashboard')
+const isDashboardPage = computed(() => route.name === 'dashboard' || route.name === 'photographer-dashboard')
 
 const bookNow = () => {
   console.log('clicked')

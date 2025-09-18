@@ -58,6 +58,76 @@
             />
           </div>
 
+          <!-- Account Type Field -->
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+              Account Type
+            </label>
+            <select
+              id="role"
+              v-model="form.role"
+              required
+              class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a] focus:z-10 bg-white"
+            >
+              <option value="">Select account type</option>
+              <option value="client">Client (Book photography sessions)</option>
+              <option value="photographer">Photographer (Offer photography services)</option>
+            </select>
+          </div>
+
+          <!-- Conditional Fields for Photographers -->
+          <div v-if="form.role === 'photographer'" class="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-900">Photographer Details</h3>
+            
+            <div>
+              <label for="studioName" class="block text-sm font-medium text-gray-700 mb-1">
+                Studio Name
+              </label>
+              <input
+                id="studioName"
+                v-model="form.studioName"
+                type="text"
+                :required="form.role === 'photographer'"
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a]"
+                placeholder="e.g., Sunset Photography Studio"
+              />
+            </div>
+            
+            <div>
+              <label for="specialization" class="block text-sm font-medium text-gray-700 mb-1">
+                Specialization
+              </label>
+              <select
+                id="specialization"
+                v-model="form.specialization"
+                :required="form.role === 'photographer'"
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a] bg-white"
+              >
+                <option value="">Select specialization</option>
+                <option value="portrait">Portrait Photography</option>
+                <option value="wedding">Wedding Photography</option>
+                <option value="event">Event Photography</option>
+                <option value="commercial">Commercial Photography</option>
+                <option value="nature">Nature Photography</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="experience" class="block text-sm font-medium text-gray-700 mb-1">
+                Years of Experience
+              </label>
+              <input
+                id="experience"
+                v-model.number="form.experience"
+                type="number"
+                min="0"
+                :required="form.role === 'photographer'"
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#7b1e3a] focus:border-[#7b1e3a]"
+                placeholder="e.g., 5"
+              />
+            </div>
+          </div>
+
           <!-- Password Field -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
@@ -209,6 +279,10 @@ const form = ref({
   fullName: '',
   email: '',
   phone: '',
+  role: '',
+  studioName: '',
+  specialization: '',
+  experience: 0,
   password: '',
   confirmPassword: '',
   acceptTerms: false
@@ -218,14 +292,25 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 
 const isFormValid = computed(() => {
-  return form.value.fullName &&
+  const baseValid = form.value.fullName &&
          form.value.email &&
          form.value.phone &&
+         form.value.role &&
          form.value.password &&
          form.value.confirmPassword &&
          form.value.password === form.value.confirmPassword &&
          form.value.acceptTerms &&
          getPasswordStrength() >= 2
+  
+  // Additional validation for photographers
+  if (form.value.role === 'photographer') {
+    return baseValid &&
+           form.value.studioName &&
+           form.value.specialization &&
+           form.value.experience >= 0
+  }
+  
+  return baseValid
 })
 
 const getPasswordStrength = () => {
@@ -276,18 +361,32 @@ const handleRegister = async () => {
       email: form.value.email,
       name: form.value.fullName,
       phone: form.value.phone,
-      avatar: '/portrait.jpg'
+      role: form.value.role,
+      avatar: form.value.role === 'photographer' ? '/man-lens.jpg' : '/portrait.jpg'
     };
+
+    // Add photographer-specific data
+    if (form.value.role === 'photographer') {
+      userData.studioName = form.value.studioName
+      userData.specialization = form.value.specialization
+      userData.experience = form.value.experience
+      userData.description = `Professional ${form.value.specialization} photographer with ${form.value.experience} years of experience.`
+      userData.basePrice = 500 // Default base price
+    }
     
     localStorage.setItem('user', JSON.stringify(userData));
     
     // Emit custom event to notify navbar of login
     window.dispatchEvent(new CustomEvent('userLogin', { detail: userData }));
     
-    toast.success('Account created successfully! Welcome to SweetShots.');
+    const successMessage = form.value.role === 'photographer' 
+      ? 'Studio account created successfully! Welcome to SweetShots.'
+      : 'Account created successfully! Welcome to SweetShots.'
+    toast.success(successMessage);
     
-    // Redirect to dashboard
-    router.push('/dashboard')
+    // Redirect to appropriate dashboard
+    const redirectPath = form.value.role === 'photographer' ? '/photographer-dashboard' : '/dashboard'
+    router.push(redirectPath)
   } catch (error) {
     toast.error('Registration failed. Please try again.')
   } finally {

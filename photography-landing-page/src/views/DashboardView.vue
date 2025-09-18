@@ -22,6 +22,11 @@
                 {{ notifications.length }}
               </span>
             </button>
+            <button @click="logout" 
+                    class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="font-medium">Logout</span>
+            </button>
             <RouterLink to="/photographers" 
                         class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white px-6">
               Book New Session
@@ -653,6 +658,17 @@ const downloadAllPhotos = (album = null) => {
 
 const viewFullscreen = (photo) => {
   toast.info('Fullscreen viewer coming soon!')
+}
+
+const logout = () => {
+  localStorage.removeItem('user')
+  user.value = null
+  
+  // Emit custom event to notify navbar of logout
+  window.dispatchEvent(new CustomEvent('userLogout'))
+  
+  toast.success('Logged out successfully!')
+  router.push('/')
 }
 
 const updateProfile = () => {

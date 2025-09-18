@@ -185,15 +185,33 @@
               <div v-for="album in photoAlbums" :key="album.id" 
                    class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                    @click="openAlbum(album)">
-                <div class="aspect-w-16 aspect-h-12">
+                <div class="aspect-w-16 aspect-h-12 relative">
                   <img :src="album.coverPhoto" 
                        class="w-full h-48 object-cover" 
                        :alt="album.title" />
+                  <div class="absolute top-2 right-2">
+                    <span :class="[
+                      'inline-block px-2 py-1 rounded-full text-xs font-medium',
+                      album.status === 'edited' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-orange-100 text-orange-800'
+                    ]">
+                      <i :class="album.status === 'edited' ? 'fas fa-check-circle' : 'fas fa-camera'" class="mr-1"></i>
+                      {{ album.status === 'edited' ? 'Ready' : 'Raw' }}
+                    </span>
+                  </div>
                 </div>
                 <div class="p-4">
                   <h4 class="font-semibold text-gray-900">{{ album.title }}</h4>
                   <p class="text-sm text-gray-600">{{ album.photographer }}</p>
-                  <p class="text-sm text-gray-500">{{ album.photoCount }} photos • {{ album.date }}</p>
+                  <div class="flex items-center justify-between mt-2">
+                    <p class="text-sm text-gray-500">{{ album.photos.length }} photos • {{ album.date }}</p>
+                    <button v-if="album.status === 'edited'" 
+                            @click.stop="downloadAllPhotos(album)"
+                            class="text-[#7b1e3a] hover:text-[#5c162c] transition-colors">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -274,6 +292,153 @@
         </div>
       </div>
     </div>
+
+    <!-- Album Viewer Modal -->
+    <div v-if="showAlbumViewer && selectedAlbum" 
+         @click="closeAlbumViewer"
+         class="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+      <div @click.stop 
+           class="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ selectedAlbum.title }}</h2>
+            <div class="flex items-center space-x-4 mt-1">
+              <p class="text-gray-600">{{ selectedAlbum.photographer }} • {{ selectedAlbum.date }}</p>
+              <span :class="[
+                'inline-block px-3 py-1 rounded-full text-xs font-medium',
+                selectedAlbum.status === 'edited' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-orange-100 text-orange-800'
+              ]">
+                <i :class="selectedAlbum.status === 'edited' ? 'fas fa-check-circle' : 'fas fa-camera'" class="mr-1"></i>
+                {{ selectedAlbum.status === 'edited' ? 'Edited & Ready' : 'Unedited Raw Photos' }}
+              </span>
+            </div>
+          </div>
+          <button @click="closeAlbumViewer" 
+                  class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Album Content -->
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <!-- Edited Album -->
+          <div v-if="selectedAlbum.status === 'edited'">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Ready for Download</h3>
+                <p class="text-sm text-gray-600">{{ selectedAlbum.photos.length }} edited photo(s) available</p>
+              </div>
+              <button @click="downloadAllPhotos" class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white">
+                <i class="fas fa-download mr-2"></i>
+                Download All ({{ selectedAlbum.photos.length }})
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div v-for="photo in selectedAlbum.photos" :key="photo.id" 
+                   class="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+                <img :src="photo.url" 
+                     :alt="photo.filename"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                  <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="downloadPhoto(photo)" 
+                            class="bg-white text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors mr-2">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button @click="viewFullscreen(photo)" 
+                            class="bg-white text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                      <i class="fas fa-expand"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
+                  <p class="text-white text-xs truncate">{{ photo.filename }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unedited Album -->
+          <div v-if="selectedAlbum.status === 'unedited'">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Raw Photos</h3>
+                <p class="text-sm text-gray-600">Select photos you'd like the photographer to edit</p>
+              </div>
+              <div class="flex items-center space-x-4">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                  <input type="checkbox" 
+                         v-model="selectAll" 
+                         @change="toggleSelectAll"
+                         class="rounded border-gray-300 text-[#7b1e3a] focus:ring-[#7b1e3a]" />
+                  <span class="text-sm font-medium text-gray-700">Select All</span>
+                </label>
+                <button @click="requestEditing" 
+                        :disabled="selectedPhotos.length === 0"
+                        :class="[
+                          'btn text-white',
+                          selectedPhotos.length > 0 
+                            ? 'bg-[#7b1e3a] hover:bg-[#5c162c]' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                        ]">
+                  <i class="fas fa-edit mr-2"></i>
+                  Request Editing ({{ selectedPhotos.length }})
+                </button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div v-for="photo in selectedAlbum.photos" :key="photo.id" 
+                   class="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <img :src="photo.url" 
+                     :alt="photo.filename"
+                     class="w-full h-full object-cover transition-transform duration-300"
+                     :class="photo.selected ? 'scale-95' : 'group-hover:scale-105'" />
+                
+                <!-- Selection Overlay -->
+                <div :class="[
+                  'absolute inset-0 transition-all duration-300 flex items-center justify-center',
+                  photo.selected 
+                    ? 'bg-[#7b1e3a] bg-opacity-30 border-4 border-[#7b1e3a]' 
+                    : 'bg-black bg-opacity-0 group-hover:bg-opacity-20'
+                ]">
+                  <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2">
+                    <button @click="viewFullscreen(photo)" 
+                            class="bg-white text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                      <i class="fas fa-expand"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Selection Checkbox -->
+                <div class="absolute top-2 left-2">
+                  <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" 
+                           v-model="photo.selected" 
+                           @change="updateSelectedPhotos"
+                           class="rounded border-gray-300 text-[#7b1e3a] focus:ring-[#7b1e3a] shadow-lg" />
+                  </label>
+                </div>
+
+                <!-- Selected Badge -->
+                <div v-if="photo.selected" 
+                     class="absolute top-2 right-2 bg-[#7b1e3a] text-white p-1 rounded-full">
+                  <i class="fas fa-check text-xs"></i>
+                </div>
+
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
+                  <p class="text-white text-xs truncate">{{ photo.filename }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -289,6 +454,11 @@ const user = ref(null)
 const activeTab = ref('bookings')
 const bookingFilter = ref('all')
 const showNotifications = ref(false)
+const showAlbumViewer = ref(false)
+const selectedAlbum = ref(null)
+const albumViewerTab = ref('edited')
+const selectedPhotos = ref([])
+const selectAll = ref(false)
 
 const profileForm = ref({
   name: '',
@@ -338,7 +508,14 @@ const photoAlbums = ref([
     photographer: 'Fatou Ceesay',
     coverPhoto: '/portrait.jpg',
     photoCount: 25,
-    date: 'Aug 15, 2025'
+    date: 'Aug 15, 2025',
+    status: 'edited', // 'edited' or 'unedited'
+    photos: [
+      { id: 'p1', url: '/portrait.jpg', filename: 'family_portrait_001.jpg' },
+      { id: 'p2', url: '/shot-2.jpg', filename: 'family_portrait_002.jpg' },
+      { id: 'p3', url: '/shot-3.jpg', filename: 'family_portrait_003.jpg' },
+      { id: 'p4', url: '/shot-1.jpg', filename: 'family_portrait_004.jpg' }
+    ]
   },
   {
     id: 2,
@@ -346,7 +523,29 @@ const photoAlbums = ref([
     photographer: 'Nuru Ahmed',
     coverPhoto: '/wedding.jpg',
     photoCount: 150,
-    date: 'Jul 20, 2025'
+    date: 'Jul 20, 2025',
+    status: 'edited',
+    photos: [
+      { id: 'p5', url: '/wedding.jpg', filename: 'wedding_001.jpg' },
+      { id: 'p6', url: '/shot-5.jpg', filename: 'wedding_002.jpg' },
+      { id: 'p7', url: '/event.jpg', filename: 'wedding_003.jpg' }
+    ]
+  },
+  {
+    id: 3,
+    title: 'Corporate Headshots',
+    photographer: 'Omar Bah',
+    coverPhoto: '/man-lens.jpg',
+    photoCount: 45,
+    date: 'Sep 10, 2025',
+    status: 'unedited',
+    photos: [
+      { id: 'p8', url: '/man-lens.jpg', filename: 'corporate_001_raw.jpg', selected: false },
+      { id: 'p9', url: '/pexels-amar-30670956.jpg', filename: 'corporate_002_raw.jpg', selected: false },
+      { id: 'p10', url: '/lens.jpg', filename: 'corporate_003_raw.jpg', selected: false },
+      { id: 'p11', url: '/lens-2.jpg', filename: 'corporate_004_raw.jpg', selected: false },
+      { id: 'p12', url: '/nature-shot.jpg', filename: 'corporate_005_raw.jpg', selected: false }
+    ]
   }
 ])
 
@@ -398,7 +597,62 @@ const leaveReview = (booking) => {
 }
 
 const openAlbum = (album) => {
-  toast.info('Album viewer coming soon!')
+  selectedAlbum.value = album
+  showAlbumViewer.value = true
+  updateSelectedPhotos()
+}
+
+const closeAlbumViewer = () => {
+  showAlbumViewer.value = false
+  selectedAlbum.value = null
+  selectedPhotos.value = []
+  selectAll.value = false
+}
+
+const updateSelectedPhotos = () => {
+  if (selectedAlbum.value && selectedAlbum.value.status === 'unedited') {
+    selectedPhotos.value = selectedAlbum.value.photos?.filter(photo => photo.selected) || []
+    selectAll.value = selectedPhotos.value.length === selectedAlbum.value.photos?.length && selectedPhotos.value.length > 0
+  }
+}
+
+const toggleSelectAll = () => {
+  if (selectedAlbum.value?.photos && selectedAlbum.value.status === 'unedited') {
+    selectedAlbum.value.photos.forEach(photo => {
+      photo.selected = selectAll.value
+    })
+    updateSelectedPhotos()
+  }
+}
+
+const requestEditing = () => {
+  if (selectedPhotos.value.length === 0) return
+  
+  const photoNames = selectedPhotos.value.map(photo => photo.filename).join(', ')
+  toast.success(`Edit request sent for ${selectedPhotos.value.length} photo(s) to ${selectedAlbum.value.photographer}`)
+  
+  // Reset selections
+  selectedAlbum.value.photos.forEach(photo => {
+    photo.selected = false
+  })
+  updateSelectedPhotos()
+}
+
+const downloadPhoto = (photo) => {
+  toast.info(`Downloading ${photo.filename}...`)
+  // In a real app, this would trigger an actual download
+}
+
+const downloadAllPhotos = (album = null) => {
+  const targetAlbum = album || selectedAlbum.value
+  if (targetAlbum && targetAlbum.status === 'edited') {
+    toast.success(`Downloading all ${targetAlbum.photos.length} photos from ${targetAlbum.title}`)
+    // In a real app, this would trigger a zip download
+  }
+}
+
+const viewFullscreen = (photo) => {
+  toast.info('Fullscreen viewer coming soon!')
 }
 
 const updateProfile = () => {

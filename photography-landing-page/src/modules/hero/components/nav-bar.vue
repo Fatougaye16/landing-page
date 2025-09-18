@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed top-0 left-0 right-0 flex items-center justify-between w-full px-6 py-4 bg-white text-[#7b1e3a] shadow-md z-50">
+  <nav v-if="!isDashboardPage" class="fixed top-0 left-0 right-0 flex items-center justify-between w-full px-6 py-4 bg-white text-[#7b1e3a] shadow-md z-50">
     <!-- Logo -->
     <div class="flex-1">
       <RouterLink to="/" class="text-2xl md:text-3xl font-bold tracking-wide hover:text-black transition-colors">
@@ -244,16 +244,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { RouterLink } from "vue-router";
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 const router = useRouter();
+const route = useRoute();
 const isMenuOpen = ref(false);
 const showUserMenu = ref(false);
 const user = ref(null);
+
+// Check if current page is dashboard
+const isDashboardPage = computed(() => route.name === 'dashboard')
 
 const bookNow = () => {
   console.log('clicked')

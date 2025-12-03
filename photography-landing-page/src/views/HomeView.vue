@@ -7,8 +7,24 @@ import GallerySection from '@/modules/shots/components/gallery-section.vue';
 import AboutSection from '@/modules/about/about-section.vue';
 import ContactSection from '@/modules/contacts/contact.vue';
 
+interface Profile {
+	id: string
+	full_name?: string
+	studio_name?: string
+	description?: string
+	cover_image_url?: string
+	avatar_url?: string
+	rating?: number
+	specialization?: string
+	total_projects?: number
+	experience?: number
+	location?: string
+	services_offered?: string
+	role?: string
+}
+
 interface Photographer {
-	id: any
+	id: string
 	name: string
 	studio: string
 	description: string
@@ -36,9 +52,9 @@ const loadFeaturedPhotographers = async () => {
 			role: 'photographer'
 		})
 		
-		if (profiles) {
+		if (profiles && profiles.length > 0) {
 			// Transform data to match component structure and limit to 6 for homepage
-			photographers.value = profiles.slice(0, 6).map(profile => ({
+			photographers.value = (profiles as Profile[]).slice(0, 6).map((profile: Profile): Photographer => ({
 				id: profile.id,
 				name: profile.full_name || 'Photographer',
 				studio: profile.studio_name || 'Photography Studio',
@@ -120,6 +136,16 @@ onMounted(() => {
 					<div class="loading loading-spinner loading-lg text-[#7b1e3a]"></div>
 					<p class="text-gray-600">Loading photographers...</p>
 				</div>
+			</div>
+			
+			<!-- Empty State -->
+			<div v-else-if="photographers.length === 0" class="text-center py-12">
+				<div class="text-6xl mb-4">📷</div>
+				<h3 class="text-xl font-semibold text-gray-800 mb-2">No Photographers Available</h3>
+				<p class="text-gray-600 mb-6">We're working on adding talented photographers to our platform.</p>
+				<router-link to="/register" class="btn bg-[#7b1e3a] hover:bg-[#5c162c] text-white">
+					Join as Photographer
+				</router-link>
 			</div>
 			
 			<!-- Photographers Grid -->

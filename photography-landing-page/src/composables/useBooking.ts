@@ -3,6 +3,17 @@ import { useSupabase } from './useSupabase'
 import { useAuth } from './useAuth'
 import { toast } from 'vue3-toastify'
 
+interface Profile {
+  id: string
+  full_name?: string
+  studio_name?: string
+  avatar_url?: string
+  specialization?: string
+  phone?: string
+  email?: string
+  role?: string
+}
+
 export interface BookingData {
   photographerId: string
   sessionType: 'portrait' | 'wedding' | 'event' | 'commercial' | 'nature'
@@ -99,16 +110,16 @@ export function useBooking() {
         const bookingsWithPhotographers = await Promise.all(
           sessionsData.map(async (session: any) => {
             const photographerData = await fetchData('profiles', { id: session.photographer_id })
-            const photographer = photographerData?.[0]
+            const photographer = photographerData?.[0] as Profile | undefined
             
             return {
               ...session,
               photographer: photographer ? {
                 id: photographer.id,
-                full_name: photographer.full_name,
-                studio_name: photographer.studio_name,
-                avatar_url: photographer.avatar_url,
-                specialization: photographer.specialization
+                full_name: photographer.full_name || '',
+                studio_name: photographer.studio_name || '',
+                avatar_url: photographer.avatar_url || '',
+                specialization: photographer.specialization || ''
               } : null
             }
           })
@@ -194,15 +205,15 @@ export function useBooking() {
         const bookingsWithClients = await Promise.all(
           sessionsData.map(async (session: any) => {
             const clientData = await fetchData('profiles', { id: session.client_id })
-            const client = clientData?.[0]
+            const client = clientData?.[0] as Profile | undefined
             
             return {
               ...session,
               client: client ? {
                 id: client.id,
-                full_name: client.full_name,
-                avatar_url: client.avatar_url,
-                phone: client.phone
+                full_name: client.full_name || '',
+                avatar_url: client.avatar_url || '',
+                phone: client.phone || ''
               } : null
             }
           })

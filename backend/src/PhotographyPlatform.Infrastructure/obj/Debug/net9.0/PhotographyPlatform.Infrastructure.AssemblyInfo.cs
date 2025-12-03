@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PhotographyPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c1b01b9fb397f49682c9a830d0fec42bc4eacdfa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1844b0765b0cec5073135f81cffc88493d22abfa")]
 [assembly: System.Reflection.AssemblyProductAttribute("PhotographyPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PhotographyPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -151,13 +151,38 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useSupabase } from '@/composables/useSupabase'
 import { toast } from 'vue3-toastify'
 
+// Define interfaces
+interface Photo {
+  src: string
+  alt: string
+  title: string
+  category: string
+  description: string
+  photographer?: string
+}
+
+interface PortfolioItem {
+  image_url: string
+  title?: string
+  category?: string
+  description?: string
+  photographer_id?: string
+}
+
+interface PublicPhoto {
+  file_url: string
+  title?: string
+  description?: string
+  photographer_id?: string
+}
+
 const { fetchData, loading, error } = useSupabase()
 
 const activeCategory = ref('All')
 const lightboxOpen = ref(false)
 const currentLightboxIndex = ref(0)
 const photosLoaded = ref(12) // Initially load 12 photos
-const allPhotos = ref([])
+const allPhotos = ref<Photo[]>([])
 const isLoading = ref(false)
 
 const categories = ['All', 'Wedding', 'Portrait', 'Event', 'Nature', 'Commercial']
@@ -172,32 +197,32 @@ const loadPhotos = async () => {
       fetchData('photos', { is_public: true })
     ])
     
-    const photos = []
+    const photos: Photo[] = []
     
     // Add portfolio items
     if (portfolioData) {
-      portfolioData.forEach(item => {
+      (portfolioData as PortfolioItem[]).forEach(item => {
         photos.push({
-          src: item.image_url,
+          src: item.image_url || '',
           alt: item.title || 'Portfolio image',
           title: item.title || 'Untitled',
           category: item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'Commercial',
           description: item.description || 'Professional photography work',
-          photographer: item.photographer_id
+          photographer: item.photographer_id || ''
         })
       })
     }
     
     // Add public photos
     if (publicPhotos) {
-      publicPhotos.forEach(photo => {
+      (publicPhotos as PublicPhoto[]).forEach(photo => {
         photos.push({
-          src: photo.file_url,
+          src: photo.file_url || '',
           alt: photo.title || 'Photo',
           title: photo.title || 'Untitled Photo',
           category: 'Portrait', // Default category, could be enhanced with session data
           description: photo.description || 'Beautiful captured moment',
-          photographer: photo.photographer_id
+          photographer: photo.photographer_id || ''
         })
       })
     }
@@ -230,7 +255,7 @@ const loadPhotos = async () => {
   }
 }
 
-const filteredPhotos = computed(() => {
+const filteredPhotos = computed((): Photo[] => {
   const filtered = activeCategory.value === 'All' 
     ? allPhotos.value 
     : allPhotos.value.filter(photo => photo.category === activeCategory.value)
@@ -246,7 +271,7 @@ const hasMorePhotos = computed(() => {
   return photosLoaded.value < totalFiltered
 })
 
-const currentPhoto = computed(() => {
+const currentPhoto = computed((): Photo | undefined => {
   return filteredPhotos.value[currentLightboxIndex.value]
 })
 

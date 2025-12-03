@@ -31,8 +31,13 @@
     <!-- Gallery Section -->
     <section class="py-16 px-6">
       <div class="max-w-7xl mx-auto">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div v-for="n in 12" :key="n" class="bg-gray-200 aspect-square rounded-xl animate-pulse"></div>
+        </div>
+
         <!-- Gallery Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div 
             v-for="(photo, index) in filteredPhotos" 
             :key="index"
@@ -143,45 +148,100 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useSupabase } from '@/composables/useSupabase'
+import { toast } from 'vue3-toastify'
+
+const { fetchData, loading, error } = useSupabase()
 
 const activeCategory = ref('All')
 const lightboxOpen = ref(false)
 const currentLightboxIndex = ref(0)
 const photosLoaded = ref(12) // Initially load 12 photos
+const allPhotos = ref([])
+const isLoading = ref(false)
 
 const categories = ['All', 'Wedding', 'Portrait', 'Event', 'Nature', 'Commercial']
 
-// Sample photo data - replace with your actual photos
-const allPhotos = [
-  { src: '/wedding.jpg', alt: 'Beautiful wedding ceremony', title: 'Wedding Bliss', category: 'Wedding', description: 'A magical moment captured during the ceremony' },
-  { src: '/portrait.jpg', alt: 'Professional portrait', title: 'Portrait Session', category: 'Portrait', description: 'Stunning professional headshot' },
-  { src: '/event.jpg', alt: 'Corporate event', title: 'Corporate Gathering', category: 'Event', description: 'Professional corporate event photography' },
-  { src: '/nature-shot.jpg', alt: 'Nature photography', title: 'Natural Beauty', category: 'Nature', description: 'Breathtaking landscape capture' },
-  { src: '/shot-1.jpg', alt: 'Creative shot', title: 'Artistic Vision', category: 'Commercial', description: 'Creative commercial photography' },
-  { src: '/shot-2.jpg', alt: 'Another creative shot', title: 'Dynamic Composition', category: 'Portrait', description: 'Bold and dynamic portrait work' },
-  { src: '/shot-3.jpg', alt: 'Wedding detail', title: 'Wedding Details', category: 'Wedding', description: 'Beautiful wedding detail photography' },
-  { src: '/shot-4.jpg', alt: 'Event candid', title: 'Candid Moments', category: 'Event', description: 'Natural candid event photography' },
-  { src: '/shot-5.jpg', alt: 'Nature landscape', title: 'Scenic Wonder', category: 'Nature', description: 'Stunning natural landscape' },
-  { src: '/lens.jpg', alt: 'Commercial work', title: 'Product Focus', category: 'Commercial', description: 'Professional product photography' },
-  { src: '/lens-2.jpg', alt: 'Another commercial', title: 'Brand Story', category: 'Commercial', description: 'Compelling brand photography' },
-  { src: '/man-lens.jpg', alt: 'Behind the scenes', title: 'Behind the Lens', category: 'Portrait', description: 'Photographer at work' },
-  // Add more photos as needed
-  { src: '/pexels-amar-30670956.jpg', alt: 'Professional portrait', title: 'Executive Portrait', category: 'Portrait', description: 'Corporate executive photography' },
-  { src: '/shutter.jpg', alt: 'Camera detail', title: 'Camera Craft', category: 'Commercial', description: 'Photography equipment artistry' },
-]
+// Load photos from Supabase
+const loadPhotos = async () => {
+  isLoading.value = true
+  try {
+    // Fetch public photos from portfolio_items and photos tables
+    const [portfolioData, publicPhotos] = await Promise.all([
+      fetchData('portfolio_items'),
+      fetchData('photos', { is_public: true })
+    ])
+    
+    const photos = []
+    
+    // Add portfolio items
+    if (portfolioData) {
+      portfolioData.forEach(item => {
+        photos.push({
+          src: item.image_url,
+          alt: item.title || 'Portfolio image',
+          title: item.title || 'Untitled',
+          category: item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'Commercial',
+          description: item.description || 'Professional photography work',
+          photographer: item.photographer_id
+        })
+      })
+    }
+    
+    // Add public photos
+    if (publicPhotos) {
+      publicPhotos.forEach(photo => {
+        photos.push({
+          src: photo.file_url,
+          alt: photo.title || 'Photo',
+          title: photo.title || 'Untitled Photo',
+          category: 'Portrait', // Default category, could be enhanced with session data
+          description: photo.description || 'Beautiful captured moment',
+          photographer: photo.photographer_id
+        })
+      })
+    }
+    
+    // If no photos from database, use fallback images
+    if (photos.length === 0) {
+      photos.push(
+        { src: '/wedding.jpg', alt: 'Beautiful wedding ceremony', title: 'Wedding Bliss', category: 'Wedding', description: 'A magical moment captured during the ceremony' },
+        { src: '/portrait.jpg', alt: 'Professional portrait', title: 'Portrait Session', category: 'Portrait', description: 'Stunning professional headshot' },
+        { src: '/event.jpg', alt: 'Corporate event', title: 'Corporate Gathering', category: 'Event', description: 'Professional corporate event photography' },
+        { src: '/nature-shot.jpg', alt: 'Nature photography', title: 'Natural Beauty', category: 'Nature', description: 'Breathtaking landscape capture' },
+        { src: '/shot-1.jpg', alt: 'Creative shot', title: 'Artistic Vision', category: 'Commercial', description: 'Creative commercial photography' },
+        { src: '/shot-2.jpg', alt: 'Another creative shot', title: 'Dynamic Composition', category: 'Portrait', description: 'Bold and dynamic portrait work' }
+      )
+    }
+    
+    allPhotos.value = photos
+  } catch (err) {
+    console.error('Error loading photos:', err)
+    toast.error('Failed to load gallery photos')
+    
+    // Use fallback images on error
+    allPhotos.value = [
+      { src: '/wedding.jpg', alt: 'Beautiful wedding ceremony', title: 'Wedding Bliss', category: 'Wedding', description: 'A magical moment captured during the ceremony' },
+      { src: '/portrait.jpg', alt: 'Professional portrait', title: 'Portrait Session', category: 'Portrait', description: 'Stunning professional headshot' },
+      { src: '/event.jpg', alt: 'Corporate event', title: 'Corporate Gathering', category: 'Event', description: 'Professional corporate event photography' }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const filteredPhotos = computed(() => {
   const filtered = activeCategory.value === 'All' 
-    ? allPhotos 
-    : allPhotos.filter(photo => photo.category === activeCategory.value)
+    ? allPhotos.value 
+    : allPhotos.value.filter(photo => photo.category === activeCategory.value)
   
   return filtered.slice(0, photosLoaded.value)
 })
 
 const hasMorePhotos = computed(() => {
   const totalFiltered = activeCategory.value === 'All' 
-    ? allPhotos.length 
-    : allPhotos.filter(photo => photo.category === activeCategory.value).length
+    ? allPhotos.value.length 
+    : allPhotos.value.filter(photo => photo.category === activeCategory.value).length
   
   return photosLoaded.value < totalFiltered
 })
@@ -240,6 +300,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  loadPhotos()
 })
 
 onBeforeUnmount(() => {

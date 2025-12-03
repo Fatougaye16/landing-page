@@ -293,9 +293,12 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useAuth } from '@/composables/useAuth'
+import { supabase } from '@/lib/supabase'
 import 'vue3-toastify/dist/index.css'
 
 const router = useRouter()
+const { signUp, loading } = useAuth()
 
 const form = ref({
   fullName: '',
@@ -311,7 +314,7 @@ const form = ref({
 })
 
 const showPassword = ref(false)
-const isLoading = ref(false)
+const isLoading = loading
 
 const isFormValid = computed(() => {
   const baseValid = form.value.fullName &&
@@ -369,58 +372,76 @@ const handleRegister = async () => {
     toast.error('Please fill in all fields correctly.')
     return
   }
-
-  isLoading.value = true
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // TODO: Replace with actual registration logic
-    // Store user session (this would normally be handled by your auth system)
-    const userData = {
-      id: Date.now(),
-      email: form.value.email,
-      name: form.value.fullName,
+    // Prepare user metadata
+    const metadata = {
+      full_name: form.value.fullName,
       phone: form.value.phone,
       role: form.value.role,
       avatar: form.value.role === 'photographer' ? '/man-lens.jpg' : '/portrait.jpg'
-    };
+    }
 
     // Add photographer-specific data
     if (form.value.role === 'photographer') {
-      userData.studioName = form.value.studioName
-      userData.specialization = form.value.specialization
-      userData.experience = form.value.experience
-      userData.description = `Professional ${form.value.specialization} photographer with ${form.value.experience} years of experience.`
-      userData.basePrice = 500 // Default base price
+      metadata.studio_name = form.value.studioName
+      metadata.specialization = form.value.specialization
+      metadata.experience = form.value.experience
+      metadata.description = `Professional ${form.value.specialization} photographer with ${form.value.experience} years of experience.`
+      metadata.base_price = 500 // Default base price
     }
+
+    const { error } = await signUp(form.value.email, form.value.password, metadata)
     
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Emit custom event to notify navbar of login
-    window.dispatchEvent(new CustomEvent('userLogin', { detail: userData }));
-    
-    const successMessage = form.value.role === 'photographer' 
-      ? 'Studio account created successfully! Welcome to SweetShots.'
-      : 'Account created successfully! Welcome to SweetShots.'
-    toast.success(successMessage);
-    
-    // Redirect to appropriate dashboard
-    const redirectPath = form.value.role === 'photographer' ? '/photographer-dashboard' : '/dashboard'
-    router.push(redirectPath)
+    if (error) {
+      toast.error(error.message)
+    } else {
+      const successMessage = form.value.role === 'photographer' 
+        ? 'Studio account created successfully! Please check your email to verify your account.'
+        : 'Account created successfully! Please check your email to verify your account.'
+      toast.success(successMessage)
+      
+      // Redirect to login after a delay
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    }
   } catch (error) {
     toast.error('Registration failed. Please try again.')
-  } finally {
-    isLoading.value = false
   }
 }
 
-const registerWithGoogle = () => {
-  toast.info('Google registration integration coming soon!')
+const registerWithGoogle = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    
+    if (error) {
+      toast.error(error.message)
+    }
+  } catch (error) {
+    toast.error('Google registration failed. Please try again.')
+  }
 }
 
-const registerWithFacebook = () => {
-  toast.info('Facebook registration integration coming soon!')
+const registerWithFacebook = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    
+    if (error) {
+      toast.error(error.message)
+    }
+  } catch (error) {
+    toast.error('Facebook registration failed. Please try again.')
+  }
 }
 </script>

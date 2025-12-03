@@ -1,97 +1,70 @@
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useSupabase } from '@/composables/useSupabase'
 import HeroSection from '@/modules/hero/components/hero-section.vue';
 import GallerySection from '@/modules/shots/components/gallery-section.vue';
 import AboutSection from '@/modules/about/about-section.vue';
 import ContactSection from '@/modules/contacts/contact.vue';
 
-const photographers = ref([
-	{
-		id: 1,
-		name: "Nuru",
-		studio: "Nuru's Touch",
-		description: "Specializing in romantic wedding photography and intimate portrait sessions with a focus on natural lighting and candid moments.",
-		coverImage: "/wedding.jpg",
-		logo: "/man-lens.jpg",
-		rating: 4.9,
-		specializations: ["Wedding", "Portrait", "Event", "Fashion"],
-		projectsCompleted: 500,
-		experience: 5,
-		location: "Banjul",
-		type: "Photography & Videography"
-	},
-	{
-		id: 2,
-		name: "Fatou Ceesay",
-		studio: "Fatou Studios",
-		description: "Creative portrait photographer known for vibrant family sessions and professional corporate headshots with artistic flair.",
-		coverImage: "/portrait.jpg",
-		logo: "/shot-2.jpg",
-		rating: 4.8,
-		specializations: ["Portrait", "Family", "Corporate", "Fashion"],
-		projectsCompleted: 350,
-		experience: 4,
-		location: "Serrekunda",
-		type: "Photography Only"
-	},
-	{
-		id: 3,
-		name: "Omar Bah",
-		studio: "Bah Photography",
-		description: "Event specialist capturing corporate functions, cultural celebrations, and commercial photography with dynamic storytelling.",
-		coverImage: "/event.jpg",
-		logo: "/shot-5.jpg",
-		rating: 4.7,
-		specializations: ["Event", "Corporate", "Commercial", "Documentary"],
-		projectsCompleted: 400,
-		experience: 6,
-		location: "Brikama",
-		type: "Photography & Videography"
-	},
-	{
-		id: 4,
-		name: "Aminata Jallow",
-		studio: "Jallow Lens",
-		description: "Fine art photographer specializing in creative portraits, fashion photography, and unique conceptual shoots.",
-		coverImage: "/shot-1.jpg",
-		logo: "/shot-3.jpg",
-		rating: 4.9,
-		specializations: ["Fashion", "Portrait", "Art", "Creative"],
-		projectsCompleted: 280,
-		experience: 3,
-		location: "Bakau",
-		type: "Photography Only"
-	},
-	{
-		id: 5,
-		name: "Lamin Sanyang",
-		studio: "Sanyang Studios",
-		description: "Wedding and event photographer with expertise in traditional ceremonies and modern celebrations throughout Gambia.",
-		coverImage: "/shot-4.jpg",
-		logo: "/nature-shot.jpg",
-		rating: 4.8,
-		specializations: ["Wedding", "Traditional", "Event", "Cultural"],
-		projectsCompleted: 450,
-		experience: 7,
-		location: "Gunjur",
-		type: "Photography & Videography"
-	},
-	{
-		id: 6,
-		name: "Isatou Darboe",
-		studio: "Darboe Creative",
-		description: "Contemporary photographer focusing on lifestyle shoots, brand photography, and social media content creation.",
-		coverImage: "/shot-2.jpg",
-		logo: "/lens.jpg",
-		rating: 4.6,
-		specializations: ["Lifestyle", "Brand", "Social Media", "Product"],
-		projectsCompleted: 200,
-		experience: 2,
-		location: "Kanifing",
-		type: "Photography Only"
+interface Photographer {
+	id: any
+	name: string
+	studio: string
+	description: string
+	coverImage: string
+	logo: string
+	rating: number
+	specializations: string[]
+	projectsCompleted: number
+	experience: number
+	location: string
+	type: string
+}
+
+const { fetchData } = useSupabase()
+const isLoading = ref(false)
+
+const photographers = ref<Photographer[]>([])
+
+// Load photographers from Supabase
+const loadFeaturedPhotographers = async () => {
+	isLoading.value = true
+	try {
+		// Fetch photographer profiles from database
+		const profiles = await fetchData('profiles', {
+			role: 'photographer'
+		})
+		
+		if (profiles) {
+			// Transform data to match component structure and limit to 6 for homepage
+			photographers.value = profiles.slice(0, 6).map(profile => ({
+				id: profile.id,
+				name: profile.full_name || 'Photographer',
+				studio: profile.studio_name || 'Photography Studio',
+				description: profile.description || 'Professional photographer specializing in various styles.',
+				coverImage: profile.cover_image_url || '/wedding.jpg',
+				logo: profile.avatar_url || '/man-lens.jpg',
+				rating: profile.rating || 4.8,
+				specializations: profile.specialization ? [profile.specialization] : ['Portrait'],
+				projectsCompleted: profile.total_projects || 100,
+				experience: profile.experience || 3,
+				location: profile.location || 'Gambia',
+				type: profile.services_offered || 'Photography'
+			}))
+		} 
+	} catch (err) {
+		console.error('Error loading photographers:', err)
+		// Use fallback data on error
+	} finally {
+		isLoading.value = false
 	}
-])
+}
+
+// Load data on mount
+onMounted(() => {
+	loadFeaturedPhotographers()
+})
 </script>
 
 <template>
@@ -141,9 +114,21 @@ const photographers = ref([
 				<p class="text-xl text-gray-600">Discover talented photographers ready to capture your special moments</p>
 			</div>
 			
-			<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-				<div v-for="photographer in photographers" :key="photographer.id" 
-					 class="text-center group cursor-pointer">
+			<!-- Loading State -->
+			<div v-if="isLoading" class="flex justify-center items-center py-12">
+				<div class="flex flex-col items-center gap-4">
+					<div class="loading loading-spinner loading-lg text-[#7b1e3a]"></div>
+					<p class="text-gray-600">Loading photographers...</p>
+				</div>
+			</div>
+			
+			<!-- Photographers Grid -->
+			<div v-else class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+				<router-link 
+					v-for="photographer in photographers" 
+					:key="photographer.id" 
+					:to="`/photographers/${photographer.id}`"
+					 class="text-center group cursor-pointer block">
 					<!-- Logo -->
 					<div class="mb-2">
 						<img :src="photographer.logo" 
@@ -160,7 +145,7 @@ const photographers = ref([
 					<p class="text-xs text-gray-600 mt-1">
 						{{ photographer.type }}
 					</p>
-				</div>
+				</router-link>
 			</div>
 			
 			<!-- View All Button -->

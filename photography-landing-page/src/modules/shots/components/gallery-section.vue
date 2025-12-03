@@ -1,3 +1,115 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useSupabase } from '@/composables/useSupabase'
+
+const { fetchData } = useSupabase()
+const galleryPhotos = ref([])
+const isLoading = ref(false)
+
+// Load featured photos from database
+const loadFeaturedPhotos = async () => {
+  isLoading.value = true
+  try {
+    // Fetch portfolio items with photos
+    const portfolioItems = await fetchData('portfolio_items', { is_featured: true })
+    
+    if (portfolioItems && portfolioItems.length > 0) {
+      // Transform data to match gallery structure
+      galleryPhotos.value = portfolioItems.slice(0, 6).map((item, index) => {
+        const categories = ['Wedding Photography', 'Portrait Sessions', 'Events', 'Nature', 'Fashion & Lifestyle', 'Commercial']
+        const descriptions = ['Romantic & Elegant', 'Professional & Personal', 'Corporate & Social', 'Landscapes & Wildlife', 'Creative & Artistic', 'Products & Brands']
+        
+        return {
+          id: item.id,
+          src: item.image_url || `/shot-${index + 1}.jpg`,
+          alt: item.title || categories[index % categories.length],
+          category: item.category || categories[index % categories.length],
+          description: descriptions[index % descriptions.length],
+          gridClass: getGridClass(index)
+        }
+      })
+    } else {
+      // Fallback to default images
+      loadDefaultPhotos()
+    }
+  } catch (err) {
+    console.error('Error loading gallery photos:', err)
+    loadDefaultPhotos()
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const getGridClass = (index) => {
+  const classes = [
+    'col-span-2 row-span-1', // Large horizontal
+    'col-span-1 row-span-2', // Tall vertical
+    'col-span-1 row-span-1', // Regular
+    'col-span-1 row-span-1', // Regular
+    'col-span-2 row-span-1', // Large horizontal
+    'col-span-1 row-span-1'  // Regular
+  ]
+  return classes[index % classes.length]
+}
+
+const loadDefaultPhotos = () => {
+  galleryPhotos.value = [
+    {
+      id: 1,
+      src: '/shot-1.jpg',
+      alt: 'Wedding Photography',
+      category: 'Wedding Photography',
+      description: 'Romantic & Elegant',
+      gridClass: 'col-span-2 row-span-1'
+    },
+    {
+      id: 2,
+      src: '/shot-2.jpg',
+      alt: 'Portrait Session',
+      category: 'Portrait Sessions',
+      description: 'Professional & Personal',
+      gridClass: 'col-span-1 row-span-2'
+    },
+    {
+      id: 3,
+      src: '/shot-3.jpg',
+      alt: 'Event Photography',
+      category: 'Events',
+      description: 'Corporate & Social',
+      gridClass: 'col-span-1 row-span-1'
+    },
+    {
+      id: 4,
+      src: '/nature-shot.jpg',
+      alt: 'Nature Photography',
+      category: 'Nature',
+      description: 'Landscapes & Wildlife',
+      gridClass: 'col-span-1 row-span-1'
+    },
+    {
+      id: 5,
+      src: '/shot-4.jpg',
+      alt: 'Fashion Photography',
+      category: 'Fashion & Lifestyle',
+      description: 'Creative & Artistic',
+      gridClass: 'col-span-2 row-span-1'
+    },
+    {
+      id: 6,
+      src: '/shot-5.jpg',
+      alt: 'Commercial Photography',
+      category: 'Commercial',
+      description: 'Products & Brands',
+      gridClass: 'col-span-1 row-span-1'
+    }
+  ]
+}
+
+onMounted(() => {
+  loadFeaturedPhotos()
+})
+</script>
+
 <template>
     <section class="py-20 bg-gradient-to-br from-gray-50 to-white">
       <div class="max-w-6xl mx-auto px-6">
@@ -11,75 +123,31 @@
           </p>
         </div>
         
+        <!-- Loading State -->
+        <div v-if="isLoading" class="flex justify-center items-center py-12">
+          <div class="flex flex-col items-center gap-4">
+            <div class="loading loading-spinner loading-lg text-[#7b1e3a]"></div>
+            <p class="text-gray-600">Loading gallery...</p>
+          </div>
+        </div>
+        
         <!-- Gallery Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[200px] md:auto-rows-[300px]">
-          <div class="col-span-2 row-span-1 group">
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[200px] md:auto-rows-[300px]">
+          <div 
+            v-for="photo in galleryPhotos" 
+            :key="photo.id" 
+            :class="photo.gridClass + ' group'"
+          >
             <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/shot-1.jpg" alt="Wedding Photography" class="bento-img">
+              <img 
+                :src="photo.src" 
+                :alt="photo.alt" 
+                class="bento-img"
+              >
               <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <div class="text-white text-center">
-                  <h3 class="text-xl font-semibold mb-2">Wedding Photography</h3>
-                  <p class="text-sm">Romantic & Elegant</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-span-1 row-span-2 group">
-            <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/shot-2.jpg" alt="Portrait Session" class="bento-img">
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div class="text-white text-center">
-                  <h3 class="text-xl font-semibold mb-2">Portrait Sessions</h3>
-                  <p class="text-sm">Professional & Personal</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-span-1 row-span-1 group">
-            <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/shot-3.jpg" alt="Event Photography" class="bento-img">
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div class="text-white text-center">
-                  <h3 class="text-lg font-semibold mb-1">Events</h3>
-                  <p class="text-xs">Corporate & Social</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-span-1 row-span-1 group">
-            <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/nature-shot.jpg" alt="Nature Photography" class="bento-img">
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div class="text-white text-center">
-                  <h3 class="text-lg font-semibold mb-1">Nature</h3>
-                  <p class="text-xs">Landscapes & Wildlife</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-span-2 row-span-1 group">
-            <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/shot-4.jpg" alt="Fashion Photography" class="bento-img">
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div class="text-white text-center">
-                  <h3 class="text-xl font-semibold mb-2">Fashion & Lifestyle</h3>
-                  <p class="text-sm">Creative & Artistic</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-span-1 row-span-1 group">
-            <div class="relative h-full overflow-hidden rounded-2xl shadow-lg">
-              <img src="/shot-5.jpg" alt="Commercial Photography" class="bento-img">
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div class="text-white text-center">
-                  <h3 class="text-lg font-semibold mb-1">Commercial</h3>
-                  <p class="text-xs">Products & Brands</p>
+                  <h3 class="text-lg md:text-xl font-semibold mb-1 md:mb-2">{{ photo.category }}</h3>
+                  <p class="text-xs md:text-sm">{{ photo.description }}</p>
                 </div>
               </div>
             </div>

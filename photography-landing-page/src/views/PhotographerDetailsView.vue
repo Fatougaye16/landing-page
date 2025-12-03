@@ -1,10 +1,22 @@
 <template>
     <div class="min-h-screen bg-gray-50">
-        <!-- Hero Section -->
-        <div class="relative h-96 md:h-[500px] overflow-hidden">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="flex items-center justify-center min-h-screen">
+            <div class="flex flex-col items-center gap-4">
+                <div class="loading loading-spinner loading-lg text-orange-500"></div>
+                <p class="text-gray-600">Loading photographer details...</p>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div v-else-if="photographer">
+            <!-- Hero Section -->
+            <div class="relative h-96 md:h-[500px] overflow-hidden">
             <!-- Cover Image -->
             <div class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40">
-                <img :src="photographer.gallery[0].src" class="w-full h-full object-cover" alt="cover" />
+                <img :src="photographer?.gallery?.[0]?.src || '/shot-1.jpg'" 
+                     class="w-full h-full object-cover" 
+                     alt="cover" />
             </div>
             
             <!-- Hero Content -->
@@ -29,16 +41,18 @@
                         <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
                             <div class="flex items-center gap-1">
                                 <span v-for="star in 5" :key="star" class="text-yellow-400 text-lg">⭐</span>
-                                <span class="ml-2 font-semibold">4.9 (127 reviews)</span>
+                                <span class="ml-2 font-semibold">
+                                    {{ photographer?.rating || 4.9 }} ({{ photographer?.totalReviews || reviews.length }} reviews)
+                                </span>
                             </div>
                             <div class="hidden md:block w-px h-6 bg-white/30"></div>
                             <div class="flex gap-6 text-sm">
                                 <div class="text-center">
-                                    <div class="font-bold text-lg">500+</div>
-                                    <div class="text-gray-300">Projects</div>
+                                    <div class="font-bold text-lg">{{ photographer?.gallery?.length || 0 }}+</div>
+                                    <div class="text-gray-300">Photos</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold text-lg">5</div>
+                                    <div class="font-bold text-lg">{{ photographer?.experience || 5 }}+</div>
                                     <div class="text-gray-300">Years Exp.</div>
                                 </div>
                             </div>
@@ -593,7 +607,20 @@
                 </div>
             </div>
         </div>
+        </div>
 
+        <!-- Error State -->
+        <!-- <div class="flex items-center justify-center min-h-screen">
+            <div class="text-center">
+                <div class="text-6xl mb-4">📷</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Photographer Not Found</h2>
+                <p class="text-gray-600 mb-4">The photographer you're looking for doesn't exist or has been removed.</p>
+                <button @click="router.push('/photographers')" 
+                        class="btn btn-primary">
+                    Browse Other Photographers
+                </button>
+            </div>
+        </div> -->
     </div>
     </div>
 </template>
@@ -602,25 +629,45 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { toast } from 'vue3-toastify';
+import { useAuth } from '@/composables/useAuth';
+import { useSupabase } from '@/composables/useSupabase';
+import { useBooking } from '@/composables/useBooking';
 import 'vue3-toastify/dist/index.css';
 
 const route = useRoute();
 const router = useRouter();
 
-// User authentication
-const user = ref(null);
+// Authentication and API
+const { user } = useAuth();
+const { fetchData, loading, error } = useSupabase();
+const { createBooking, getAvailableSlots } = useBooking();
 
-// Check for user authentication on mount
-onMounted(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-        user.value = JSON.parse(userData);
-        // Pre-fill form with user data if authenticated
-        if (user.value) {
-            name.value = user.value.name || '';
-            email.value = user.value.email || '';
-            phone.value = user.value.phone || '';
-        }
+// Photographer data
+const photographer = ref(null);
+const photographerReviews = ref([]);
+const portfolioItems = ref([]);
+const isLoading = ref(false);
+
+// Load data on mount
+onMounted(async () => {
+    await loadPhotographerData();
+    
+    // Pre-fill form with user data if authenticated
+    if (user.value) {
+        name.value = user.value.user_metadata?.full_name || user.value.email?.split('@')[0] || '';
+        email.value = user.value.email || '';
+        phone.value = user.value.user_metadata?.phone || '';
+    }
+    
+    // Check if user came here to book (from query parameter)
+    if (route.query.book === 'true' && user.value) {
+        // Scroll to booking section
+        setTimeout(() => {
+            const bookingSection = document.querySelector('#booking-section');
+            if (bookingSection) {
+                bookingSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 500);
     }
 });
 
@@ -634,7 +681,7 @@ const requireAuth = () => {
     return true;
 };
 
-function bookAppointment() {
+async function bookAppointment() {
     // Check authentication first
     if (!requireAuth()) return;
     
@@ -643,38 +690,50 @@ function bookAppointment() {
         return;
     }
     
-    const bookingDetails = {
-        userId: user.value.id,
-        photographerId: photographer.value.id,
-        name: name.value,
-        email: email.value,
-        phone: phone.value,
-        date: formatSelectedDate(),
-        time: selectedTime.value,
-        package: selectedPackage.value,
-        specialRequests: specialRequests.value,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    };
+    if (!selectedDate.value || !selectedTime.value) {
+        toast.error("Please select date and time!", {autoClose: 5000});
+        return;
+    }
     
-    // Save booking to user's bookings (in a real app, this would be sent to backend)
-    const existingBookings = JSON.parse(localStorage.getItem('userBookings') || '[]');
-    existingBookings.push(bookingDetails);
-    localStorage.setItem('userBookings', JSON.stringify(existingBookings));
-    
-    toast.success(`Booking confirmed for ${name.value} on ${formatSelectedDate()} at ${selectedTime.value}!`, {autoClose: 5000});
-    
-    // Reset form
-    selectedDate.value = selectedTime.value = selectedPackage.value = "";
-    specialRequests.value = "";
-    bookingStep.value = 1;
-    
-    // Redirect to dashboard to view booking
-    setTimeout(() => {
-        router.push('/dashboard');
-    }, 2000);
-    
-    console.log('Booking Details:', bookingDetails);
+    try {
+        // Prepare booking data
+        const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`;
+        
+        // Get package price (extract number from price string like "D200")
+        const selectedPkg = photographer.value.packages.find(p => p.name === selectedPackage.value);
+        const price = selectedPkg ? parseInt(selectedPkg.price.replace('D', '')) : 150;
+        
+        const bookingData = {
+            photographerId: photographer.value.id,
+            sessionType: photographer.value.specialization || 'portrait',
+            sessionDate: dateStr,
+            sessionTime: selectedTime.value,
+            durationHours: 2, // Default duration
+            location: 'TBD - will be discussed',
+            price: price,
+            clientNotes: `Package: ${selectedPackage.value}. ${specialRequests.value || ''}`.trim()
+        };
+        
+        // Create booking via API
+        const booking = await createBooking(bookingData);
+        
+        if (booking) {
+            toast.success(`Booking request sent! You'll receive confirmation shortly.`, {autoClose: 5000});
+            
+            // Reset form
+            selectedDate.value = selectedTime.value = selectedPackage.value = "";
+            specialRequests.value = "";
+            bookingStep.value = 1;
+            
+            // Redirect to dashboard to view booking
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 2000);
+        }
+    } catch (err) {
+        console.error('Error creating booking:', err);
+        toast.error('Failed to create booking. Please try again.');
+    }
 }
 
 function selectPackageForBooking(packageName) {
@@ -689,118 +748,160 @@ function selectPackageForBooking(packageName) {
     }
 }
 
-// Mock photographer data
-const photographers = [
-    {
-        id: 1,
-        name: "Nuru",
-        studio: "Nuru's Touch",
-        phone: "+220 123 4567",
-        address: "Kairaba Avenue, Banjul",
-        email: "dio@nurutouch.com",
-        image: "/man-lens.jpg",
-        gallery: [
-            { src: "/shot-1.jpg", category: "wedding", title: "Beautiful Wedding Ceremony" },
-            { src: "/shot-2.jpg", category: "portrait", title: "Professional Portrait" },
-            { src: "/shot-3.jpg", category: "event", title: "Corporate Event" },
-            { src: "/shot-4.jpg", category: "wedding", title: "Wedding Reception" },
-            { src: "/wedding.jpg", category: "wedding", title: "Romantic Couple" },
-            { src: "/portrait.jpg", category: "portrait", title: "Studio Portrait" },
-            { src: "/event.jpg", category: "event", title: "Conference Photography" },
-            { src: "/shot-5.jpg", category: "portrait", title: "Outdoor Portrait" },
-        ],
-        packages: [
-            {
-                name: "Essential",
-                description: "Perfect for intimate gatherings and small events",
-                price: "D100",
-                image: "/wedding.jpg",
-                features: ["2 hours coverage", "10 edited photos", "Online gallery", "Email delivery"],
-                popular: false,
-            },
-            {
-                name: "Professional",
-                description: "Most popular choice for weddings and events",
-                price: "D200",
-                image: "/event.jpg",
-                features: ["4 hours coverage", "25 edited photos", "Premium album", "USB drive", "Print release"],
-                popular: true,
-            },
-            {
-                name: "Premium",
-                description: "Ultimate package with full-day coverage",
-                price: "D400",
-                image: "/portrait.jpg",
-                features: ["Full day coverage", "50 edited photos", "2 premium albums", "Canvas prints", "Engagement session"],
-                popular: false,
-            },
-            {
-                name: "Cinematic",
-                description: "Video + photography combination package",
-                price: "D700",
-                image: "/shot-4.jpg",
-                features: ["Full day coverage", "Video highlights", "50 edited photos", "4K video quality", "Drone footage"],
-                popular: false,
-            },
-        ],
-    },
-];
-
-// Mock reviews data
-const reviews = [
-    {
-        name: "Fatou Jallow",
-        event: "Wedding Photography",
-        rating: 5,
-        comment: "Nuru captured our special day perfectly! The photos are absolutely stunning and we couldn't be happier with the quality and professionalism.",
-        avatar: "/portrait.jpg",
-        date: "2 weeks ago"
-    },
-    {
-        name: "Amie Ceesay",
-        event: "Portrait Session",
-        rating: 5,
-        comment: "Amazing experience! Nuru made me feel comfortable throughout the session and delivered breathtaking portraits that exceeded my expectations.",
-        avatar: "/shot-2.jpg",
-        date: "1 month ago"
-    },
-    {
-        name: "Omar Bah",
-        event: "Corporate Event",
-        rating: 5,
-        comment: "Professional, punctual, and incredibly talented. Nuru documented our company event beautifully and delivered the photos quickly.",
-        avatar: "/man-lens.jpg",
-        date: "3 weeks ago"
-    },
-    {
-        name: "Kaddy Touray",
-        event: "Family Portrait",
-        rating: 4,
-        comment: "Great photographer with an eye for detail. Our family photos turned out wonderful and the whole experience was enjoyable.",
-        avatar: "/shot-5.jpg",
-        date: "1 week ago"
-    },
-    {
-        name: "Lamin Sanyang",
-        event: "Wedding Photography",
-        rating: 5,
-        comment: "Exceptional work! Nuru has a unique ability to capture candid moments and emotions. Our wedding album is a treasure.",
-        avatar: "/wedding.jpg",
-        date: "2 months ago"
-    },
-    {
-        name: "Isatou Darboe",
-        event: "Event Photography",
-        rating: 5,
-        comment: "Highly recommend! Professional service, beautiful photos, and great communication throughout the entire process.",
-        avatar: "/event.jpg",
-        date: "3 weeks ago"
+// Load photographer data from Supabase
+const loadPhotographerData = async () => {
+    isLoading.value = true;
+    try {
+        const photographerId = route.params.id;
+        
+        // Fetch photographer profile
+        const profileData = await fetchData('profiles', { 
+            id: photographerId, 
+            role: 'photographer' 
+        });
+        
+        if (profileData && profileData.length > 0) {
+            const profile = profileData[0];
+            
+            // Fetch portfolio items
+            const portfolioData = await fetchData('portfolio_items', {
+                photographer_id: photographerId
+            });
+            
+            // Fetch reviews
+            const reviewsData = await fetchData('reviews', {
+                photographer_id: photographerId,
+                is_public: true
+            });
+            
+            // Transform data to match component structure
+            photographer.value = {
+                id: profile.id,
+                name: profile.full_name || 'Photographer',
+                studio: profile.studio_name || 'Photography Studio',
+                phone: profile.phone || '+220 123 4567',
+                address: profile.location || 'Banjul, Gambia',
+                email: profile.email || 'contact@studio.com',
+                image: profile.avatar_url || '/man-lens.jpg',
+                description: profile.description || 'Professional photographer with years of experience.',
+                experience: profile.experience || 5,
+                rating: profile.rating || 4.9,
+                totalReviews: profile.total_reviews || 0,
+                basePrice: profile.base_price || 150,
+                specialization: profile.specialization || 'portrait',
+                gallery: portfolioData ? portfolioData.map(item => ({
+                    src: item.image_url,
+                    category: item.category || 'portrait',
+                    title: item.title || 'Portfolio Item'
+                })) : [],
+                packages: [
+                    {
+                        name: "Essential",
+                        description: "Perfect for intimate gatherings and small events",
+                        price: `D${profile.base_price || 100}`,
+                        image: "/wedding.jpg",
+                        features: ["2 hours coverage", "15 edited photos", "Online gallery", "Email delivery"],
+                        popular: false,
+                    },
+                    {
+                        name: "Professional",
+                        description: "Most popular choice for weddings and events",
+                        price: `D${(profile.base_price || 100) * 2}`,
+                        image: "/event.jpg",
+                        features: ["4 hours coverage", "30 edited photos", "Premium album", "USB drive", "Print release"],
+                        popular: true,
+                    },
+                    {
+                        name: "Premium",
+                        description: "Ultimate package with full-day coverage",
+                        price: `D${(profile.base_price || 100) * 4}`,
+                        image: "/portrait.jpg",
+                        features: ["Full day coverage", "60 edited photos", "2 premium albums", "Canvas prints", "Engagement session"],
+                        popular: false,
+                    }
+                ]
+            };
+            
+            // Transform reviews data
+            if (reviewsData) {
+                photographerReviews.value = reviewsData.map(review => ({
+                    name: review.client?.full_name || 'Client',
+                    event: review.title || `${profile.specialization} Session`,
+                    rating: review.rating,
+                    comment: review.comment || 'Great experience!',
+                    avatar: '/portrait.jpg',
+                    date: new Date(review.created_at).toLocaleDateString()
+                }));
+            }
+            
+            portfolioItems.value = portfolioData || [];
+        } else {
+            toast.error('Photographer not found');
+            router.push('/photographers');
+        }
+    } catch (err) {
+        console.error('Error loading photographer data:', err);
+        toast.error('Failed to load photographer details');
+        
+        // Use fallback data
+        photographer.value = {
+            id: route.params.id,
+            name: "Nuru Ahmed",
+            studio: "Nuru's Touch",
+            phone: "+220 123 4567",
+            address: "Kairaba Avenue, Banjul",
+            email: "contact@nurutouch.com",
+            image: "/man-lens.jpg",
+            gallery: [
+                { src: "/shot-1.jpg", category: "wedding", title: "Wedding Photography" },
+                { src: "/portrait.jpg", category: "portrait", title: "Portrait Session" }
+            ],
+            packages: [
+                {
+                    name: "Essential",
+                    price: "D150",
+                    description: "Basic photography package",
+                    features: ["2 hours coverage", "15 edited photos"],
+                    popular: false
+                }
+            ]
+        };
+    } finally {
+        isLoading.value = false;
     }
-];
+};
 
-const photographer = computed(() =>
-    photographers.find((p) => p.id === Number(route.params.id))
-);
+// Load available time slots for booking
+const availableTimeSlots = ref([
+    { time: "09:00", available: true },
+    { time: "10:30", available: true },
+    { time: "12:00", available: false },
+    { time: "13:30", available: true },
+    { time: "15:00", available: true },
+    { time: "16:30", available: false },
+]);
+
+const loadAvailableSlots = async () => {
+    if (!selectedDate.value || !photographer.value) return;
+    
+    try {
+        const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`;
+        const slots = await getAvailableSlots(photographer.value.id, dateStr);
+        
+        // Convert to expected format
+        availableTimeSlots.value = [
+            "09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00"
+        ].map(time => ({
+            time,
+            available: slots.includes(time)
+        }));
+    } catch (err) {
+        console.error('Error loading available slots:', err);
+    }
+};
+
+// Computed property for reviews
+const reviews = computed(() => photographerReviews.value);
 
 // Gallery functionality
 const selectedCategory = ref('all');
@@ -856,15 +957,6 @@ const selectedPackage = ref("");
 const name = ref("");
 const email = ref("");
 const phone = ref("");
-
-const availableTimeSlots = [
-    { time: "09:00", available: true },
-    { time: "10:30", available: true },
-    { time: "12:00", available: false },
-    { time: "13:30", available: true },
-    { time: "15:00", available: true },
-    { time: "16:30", available: false },
-];
 
 function getMonthYear() {
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -922,8 +1014,9 @@ function previousStep() {
     }
 }
 
-function selectDate(day) {
+async function selectDate(day) {
     selectedDate.value = day;
+    await loadAvailableSlots();
     bookingStep.value = 2;
 }
 

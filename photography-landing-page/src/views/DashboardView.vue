@@ -619,11 +619,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useAuth } from '@/composables/useAuth'
+import { useSupabase } from '@/composables/useSupabase'
 import 'vue3-toastify/dist/index.css'
 
 const router = useRouter()
-
-const user = ref(null)
+const { user, loading: authLoading } = useAuth()
+const { fetchData, insertData, updateData, loading: dbLoading, error } = useSupabase()
 const activeTab = ref('bookings')
 const bookingFilter = ref('all')
 const showNotifications = ref(false)
@@ -685,98 +687,14 @@ const tabs = computed(() => [
   { id: 'profile', name: 'Profile', icon: 'fas fa-user', count: null }
 ])
 
-const bookings = ref([
-  {
-    id: 1,
-    photographer: { name: 'Nuru Ahmed', studio: "Nuru's Touch", image: '/man-lens.jpg' },
-    package: 'Professional',
-    date: '2025-09-25',
-    time: '10:00 AM',
-    status: 'confirmed'
-  },
-  {
-    id: 2,
-    photographer: { name: 'Fatou Ceesay', studio: 'Fatou Studios', image: '/shot-2.jpg' },
-    package: 'Essential',
-    date: '2025-08-15',
-    time: '2:00 PM',
-    status: 'completed',
-    reviewed: true
-  },
-  {
-    id: 3,
-    photographer: { name: 'Omar Bah', studio: 'Bah Photography', image: '/shot-5.jpg' },
-    package: 'Premium',
-    date: '2025-10-05',
-    time: '11:30 AM',
-    status: 'pending'
-  }
-])
+const bookings = ref([])
+const isLoadingBookings = ref(false)
 
-const photoAlbums = ref([
-  {
-    id: 1,
-    title: 'Family Portrait Session',
-    photographer: 'Fatou Ceesay',
-    coverPhoto: '/portrait.jpg',
-    photoCount: 25,
-    date: 'Aug 15, 2025',
-    status: 'edited', // 'edited' or 'unedited'
-    photos: [
-      { id: 'p1', url: '/portrait.jpg', filename: 'family_portrait_001.jpg' },
-      { id: 'p2', url: '/shot-2.jpg', filename: 'family_portrait_002.jpg' },
-      { id: 'p3', url: '/shot-3.jpg', filename: 'family_portrait_003.jpg' },
-      { id: 'p4', url: '/shot-1.jpg', filename: 'family_portrait_004.jpg' }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Wedding Photography',
-    photographer: 'Nuru Ahmed',
-    coverPhoto: '/wedding.jpg',
-    photoCount: 150,
-    date: 'Jul 20, 2025',
-    status: 'edited',
-    photos: [
-      { id: 'p5', url: '/wedding.jpg', filename: 'wedding_001.jpg' },
-      { id: 'p6', url: '/shot-5.jpg', filename: 'wedding_002.jpg' },
-      { id: 'p7', url: '/event.jpg', filename: 'wedding_003.jpg' }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Corporate Headshots',
-    photographer: 'Omar Bah',
-    coverPhoto: '/man-lens.jpg',
-    photoCount: 45,
-    date: 'Sep 10, 2025',
-    status: 'unedited',
-    photos: [
-      { id: 'p8', url: '/man-lens.jpg', filename: 'corporate_001_raw.jpg', selected: false },
-      { id: 'p9', url: '/pexels-amar-30670956.jpg', filename: 'corporate_002_raw.jpg', selected: false },
-      { id: 'p10', url: '/lens.jpg', filename: 'corporate_003_raw.jpg', selected: false },
-      { id: 'p11', url: '/lens-2.jpg', filename: 'corporate_004_raw.jpg', selected: false },
-      { id: 'p12', url: '/nature-shot.jpg', filename: 'corporate_005_raw.jpg', selected: false }
-    ]
-  }
-])
+const photoAlbums = ref([])
+const isLoadingPhotos = ref(false)
 
-const notifications = ref([
-  {
-    id: 1,
-    type: 'photos',
-    title: 'Photos Ready!',
-    message: 'Your family portrait photos are now available for download.',
-    time: '2 hours ago'
-  },
-  {
-    id: 2,
-    type: 'booking',
-    title: 'Booking Confirmed',
-    message: 'Your session with Nuru Ahmed has been confirmed for Sep 25.',
-    time: '1 day ago'
-  }
-])
+const notifications = ref([])
+const isLoadingNotifications = ref(false)
 
 const filteredBookings = computed(() => {
   if (bookingFilter.value === 'all') return bookings.value
@@ -1016,34 +934,226 @@ const handleRetry = () => {
   }
 }
 
-const updateProfile = () => {
-  // Update user data
-  user.value = { ...user.value, ...profileForm.value }
-  localStorage.setItem('user', JSON.stringify(user.value))
-  toast.success('Profile updated successfully!')
+// Load user's bookings from database
+const loadBookings = async () => {
+  if (!user.value) return
+  
+  isLoadingBookings.value = true
+  try {
+    const sessionsData = await fetchData('photo_sessions', { client_id: user.value.id })
+    if (sessionsData) {
+      // Fetch photographer details for each session
+      const bookingsWithDetails = await Promise.all(
+        sessionsData.map(async (session) => {
+          const photographerData = await fetchData('profiles', { id: session.photographer_id })
+          const photographer = photographerData?.[0]
+          
+          return {
+            id: session.id,
+            photographer: {
+              name: photographer?.full_name || 'Unknown',
+              studio: photographer?.studio_name || 'Studio',
+              image: photographer?.avatar_url || '/portrait.jpg'
+            },
+            package: session.session_type,
+            date: new Date(session.session_date).toLocaleDateString(),
+            time: session.session_time,
+            status: session.status,
+            location: session.location,
+            price: session.price,
+            notes: session.client_notes
+          }
+        })
+      )
+      bookings.value = bookingsWithDetails
+    }
+  } catch (err) {
+    console.error('Error loading bookings:', err)
+    toast.error('Failed to load bookings')
+  } finally {
+    isLoadingBookings.value = false
+  }
 }
 
-onMounted(() => {
-  // Check if user is logged in
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    user.value = JSON.parse(userData)
-    profileForm.value = {
-      name: user.value.name || '',
-      email: user.value.email || '',
-      phone: user.value.phone || '',
-      preferredContact: 'email'
+// Load user's photo albums from database
+const loadPhotoAlbums = async () => {
+  if (!user.value) return
+  
+  isLoadingPhotos.value = true
+  try {
+    const photosData = await fetchData('photos', { client_id: user.value.id })
+    if (photosData) {
+      // Group photos by session
+      const albumsMap = new Map()
+      
+      for (const photo of photosData) {
+        if (!albumsMap.has(photo.session_id)) {
+          // Get session and photographer details
+          const sessionData = await fetchData('photo_sessions', { id: photo.session_id })
+          const session = sessionData?.[0]
+          const photographerData = await fetchData('profiles', { id: photo.photographer_id })
+          const photographer = photographerData?.[0]
+          
+          albumsMap.set(photo.session_id, {
+            id: photo.session_id,
+            title: `${session?.session_type || 'Photo'} Session`,
+            photographer: photographer?.full_name || 'Unknown',
+            coverPhoto: photo.thumbnail_url || photo.file_url,
+            date: new Date(session?.session_date || photo.created_at).toLocaleDateString(),
+            status: photo.is_public ? 'edited' : 'unedited',
+            photos: []
+          })
+        }
+        
+        albumsMap.get(photo.session_id).photos.push({
+          id: photo.id,
+          url: photo.file_url,
+          filename: photo.title || `photo_${photo.id}.jpg`,
+          selected: false
+        })
+      }
+      
+      photoAlbums.value = Array.from(albumsMap.values())
     }
+  } catch (err) {
+    console.error('Error loading photo albums:', err)
+    toast.error('Failed to load photo albums')
+  } finally {
+    isLoadingPhotos.value = false
+  }
+}
+
+// Load user's notifications from database
+const loadNotifications = async () => {
+  if (!user.value) return
+  
+  isLoadingNotifications.value = true
+  try {
+    const notificationsData = await fetchData('notifications', { 
+      user_id: user.value.id,
+      is_read: false 
+    })
+    if (notificationsData) {
+      notifications.value = notificationsData.map(notif => ({
+        id: notif.id,
+        type: notif.type,
+        title: notif.title,
+        message: notif.message,
+        time: new Date(notif.created_at).toLocaleString()
+      }))
+    }
+  } catch (err) {
+    console.error('Error loading notifications:', err)
+  } finally {
+    isLoadingNotifications.value = false
+  }
+}
+
+// Create a new booking
+const createBooking = async (bookingData) => {
+  try {
+    const newBooking = await insertData('photo_sessions', {
+      photographer_id: bookingData.photographerId,
+      client_id: user.value.id,
+      session_type: bookingData.sessionType,
+      session_date: bookingData.date,
+      session_time: bookingData.time,
+      duration_hours: bookingData.duration || 2,
+      location: bookingData.location,
+      price: bookingData.price,
+      client_notes: bookingData.notes
+    })
     
-    // Check if onboarding should be shown
-    const onboardingComplete = localStorage.getItem('dashboard-onboarding-complete')
-    if (!onboardingComplete) {
-      setTimeout(() => {
-        showOnboarding.value = true
-      }, 1000) // Show after 1 second delay
+    if (newBooking) {
+      toast.success('Booking created successfully!')
+      await loadBookings() // Refresh bookings
+      return newBooking
     }
-  } else {
+  } catch (err) {
+    console.error('Error creating booking:', err)
+    toast.error('Failed to create booking')
+    return null
+  }
+}
+
+// Update user profile
+const updateProfile = async () => {
+  if (!user.value) return
+  
+  try {
+    const updatedProfile = await updateData('profiles', user.value.id, {
+      full_name: profileForm.value.name,
+      phone: profileForm.value.phone,
+      preferred_location: profileForm.value.preferredContact
+    })
+    
+    if (updatedProfile) {
+      toast.success('Profile updated successfully!')
+    } else if (error.value) {
+      toast.error(error.value)
+    }
+  } catch (err) {
+    console.error('Error updating profile:', err)
+    toast.error('Failed to update profile')
+  }
+}
+
+onMounted(async () => {
+  // Wait for auth to load
+  if (authLoading.value) {
+    // Wait a bit for auth to resolve
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  
+  if (!user.value) {
     router.push('/login?redirect=/dashboard')
+    return
+  }
+  
+  // Check if user is a photographer and redirect accordingly
+  let currentUser = user.value
+  
+  // If no user from composable, try localStorage
+  if (!currentUser) {
+    const supabaseSession = localStorage.getItem('sb-ywlujqnutcqlghucyfwx-auth-token')
+    if (supabaseSession) {
+      try {
+        const sessionData = JSON.parse(supabaseSession)
+        currentUser = sessionData.user
+      } catch (e) {
+        console.warn('Could not parse localStorage session data')
+      }
+    }
+  }
+  
+  // Check role from user metadata
+  if (currentUser?.user_metadata?.role === 'photographer') {
+    // Redirect photographers to their dashboard
+    router.push('/photographer-dashboard')
+    return
+  }
+  
+  // Set up profile form with user data
+  profileForm.value = {
+    name: user.value.user_metadata?.full_name || user.value.email?.split('@')[0] || '',
+    email: user.value.email || '',
+    phone: user.value.user_metadata?.phone || '',
+    preferredContact: 'email'
+  }
+  
+  // Load all dashboard data
+  await Promise.all([
+    loadBookings(),
+    loadPhotoAlbums(),
+    loadNotifications()
+  ])
+  
+  // Check if onboarding should be shown
+  const onboardingComplete = localStorage.getItem('dashboard-onboarding-complete')
+  if (!onboardingComplete && bookings.value.length === 0) {
+    setTimeout(() => {
+      showOnboarding.value = true
+    }, 2000) // Show after data loads
   }
 })
 </script>

@@ -19,9 +19,22 @@
     <!-- Photographers Grid -->
     <section class="py-16 px-6">
       <div class="max-w-6xl mx-auto">
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-for="n in 8" :key="n" class="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
+            <div class="h-48 bg-gray-200"></div>
+            <div class="p-4 space-y-3">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div class="h-3 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photographers Grid -->
+        <div v-else class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div 
-            v-for="photographer in photographers"
+            v-for="photographer in filteredPhotographers"
             :key="photographer.id"
             class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
           >
@@ -106,12 +119,23 @@
         </div>
 
         <!-- No photographers message -->
-        <div v-if="photographers.length === 0" class="text-center py-16">
+        <div v-if="!isLoading && filteredPhotographers.length === 0" class="text-center py-16">
           <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <i class="fas fa-camera text-gray-400 text-2xl"></i>
           </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">No photographers available</h3>
-          <p class="text-gray-600">Please check back later for available photographers.</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">
+            {{ photographers.length === 0 ? 'No photographers available' : 'No photographers match your criteria' }}
+          </h3>
+          <p class="text-gray-600">
+            {{ photographers.length === 0 ? 'Please check back later for available photographers.' : 'Try adjusting your search filters.' }}
+          </p>
+          <button 
+            v-if="photographers.length > 0" 
+            @click="clearFilters" 
+            class="mt-4 px-6 py-2 bg-[#7b1e3a] text-white rounded-lg hover:bg-[#5c162c] transition-colors"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
     </section>
@@ -177,51 +201,89 @@
 </template>
 
 <script setup>
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSupabase } from '@/composables/useSupabase'
+import { toast } from 'vue3-toastify'
 
 const router = useRouter()
+const { fetchData, loading, error } = useSupabase()
 
-const photographers = [
-  {
-    id: 1,
-    name: "Nuru Ahmed",
-    studio: "Nuru's Touch",
-    image: "/man-lens.jpg",
-    bio: "Specializing in portrait and lifestyle photography with over 8 years of experience capturing authentic moments.",
-    experience: "8+ years",
-    specializations: ["Portrait", "Lifestyle", "Family"],
-    rating: 5,
-    price: 150,
-  },
-  {
-    id: 2,
-    name: "Ellie Beilish",
-    studio: "Dutcher's Shot",
-    image: "https://img.daisyui.com/images/profile/demo/4@94.webp",
-    bio: "Award-winning wedding and event photographer known for capturing emotional storytelling through creative compositions.",
-    experience: "6+ years",
-    specializations: ["Wedding", "Events", "Corporate"],
-    rating: 5,
-    price: 200,
-  },
-  {
-    id: 3,
-    name: "Adu Mensah",
-    studio: "Cappuccino",
-    image: "https://img.daisyui.com/images/profile/demo/3@94.webp",
-    bio: "Creative commercial photographer with expertise in product, fashion, and architectural photography.",
-    experience: "10+ years",
-    specializations: ["Commercial", "Fashion", "Architecture"],
-    rating: 4,
-    price: 180,
-  },
-];
+const photographers = ref([])
+const isLoading = ref(false)
+const filters = ref({
+  specialization: '',
+  priceRange: '',
+  location: '',
+  rating: 0
+})
+
+// Load photographers from Supabase
+const loadPhotographers = async () => {
+  isLoading.value = true
+  try {
+    const photographersData = await fetchData('profiles', { role: 'photographer', is_active: true })
+    
+    if (photographersData) {
+      photographers.value = photographersData.map(photographer => ({
+        id: photographer.id,
+        name: photographer.full_name || 'Unknown Photographer',
+        studio: photographer.studio_name || 'Photography Studio',
+        image: photographer.avatar_url || '/portrait.jpg',
+        bio: photographer.description || 'Professional photographer with passion for capturing moments.',
+        experience: `${photographer.experience || 5}+ years`,
+        specializations: photographer.specialization ? [photographer.specialization] : ['Portrait'],
+        rating: photographer.rating || 5,
+        price: photographer.base_price || 150,
+        location: photographer.location || 'Available nationwide',
+        totalReviews: photographer.total_reviews || 0
+      }))
+    }
+  } catch (err) {
+    console.error('Error loading photographers:', err)
+    toast.error('Failed to load photographers')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Filtered photographers based on search criteria
+const filteredPhotographers = computed(() => {
+  let filtered = photographers.value
+  
+  if (filters.value.specialization) {
+    filtered = filtered.filter(p => 
+      p.specializations.some(s => 
+        s.toLowerCase().includes(filters.value.specialization.toLowerCase())
+      )
+    )
+  }
+  
+  if (filters.value.rating > 0) {
+    filtered = filtered.filter(p => p.rating >= filters.value.rating)
+  }
+  
+  if (filters.value.priceRange) {
+    const [min, max] = filters.value.priceRange.split('-').map(Number)
+    filtered = filtered.filter(p => p.price >= min && p.price <= max)
+  }
+  
+  return filtered
+})
 
 const bookPhotographer = (photographer) => {
-  // You can implement booking logic here
-  console.log('Booking photographer:', photographer.name)
-  router.push({ name: 'photographer-details', params: { id: photographer.id } })
+  // Navigate to photographer details where booking can be completed
+  router.push({ 
+    name: 'photographer-details', 
+    params: { id: photographer.id },
+    query: { book: 'true' } // Indicate booking intent
+  })
 }
+
+// Load photographers when component mounts
+onMounted(() => {
+  loadPhotographers()
+})
 </script>
 
 <style scoped>

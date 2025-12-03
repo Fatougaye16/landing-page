@@ -1,0 +1,16 @@
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\bin\Debug\net9.0\PhotographyPlatform.Application.deps.json
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\bin\Debug\net9.0\PhotographyPlatform.Application.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\bin\Debug\net9.0\PhotographyPlatform.Application.pdb
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\bin\Debug\net9.0\PhotographyPlatform.Domain.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\bin\Debug\net9.0\PhotographyPlatform.Domain.pdb
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.csproj.AssemblyReference.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.AssemblyInfoInputs.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.AssemblyInfo.cs
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.csproj.CoreCompileInputs.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.sourcelink.json
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\Photogra.B8BA4CE0.Up2Date
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\refint\PhotographyPlatform.Application.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\PhotographyPlatform.Application.pdb
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Application\obj\Debug\net9.0\ref\PhotographyPlatform.Application.dll

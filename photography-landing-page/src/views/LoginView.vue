@@ -137,9 +137,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useAuth } from '@/composables/useAuth'
+import { supabase } from '@/lib/supabase'
 import 'vue3-toastify/dist/index.css'
 
 const router = useRouter()
+const { signIn, loading } = useAuth()
 
 const form = ref({
   email: '',
@@ -148,50 +151,63 @@ const form = ref({
 })
 
 const showPassword = ref(false)
-const isLoading = ref(false)
+const isLoading = loading
 
 const handleLogin = async () => {
-  isLoading.value = true
-  
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { error } = await signIn(form.value.email, form.value.password)
     
-    // TODO: Replace with actual authentication logic
-    if (form.value.email && form.value.password) {
-      // Store user session (this would normally be handled by your auth system)
-      const userData = {
-        id: 1,
-        email: form.value.email,
-        name: form.value.email.split('@')[0],
-        avatar: '/portrait.jpg'
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Emit custom event to notify navbar of login
-      window.dispatchEvent(new CustomEvent('userLogin', { detail: userData }));
-      
-      toast.success('Welcome back! Login successful.');
-      
-      // Redirect to dashboard or previous page
-      const redirect = router.currentRoute.value.query.redirect || '/dashboard'
-      router.push(redirect)
+    if (error) {
+      toast.error(error.message)
     } else {
-      toast.error('Please fill in all fields.')
+      toast.success('Welcome back! Login successful.')
+      
+      // Get redirect from query params, default to dashboard
+      const redirect = router.currentRoute.value.query.redirect
+      if (redirect && typeof redirect === 'string') {
+        router.push(redirect)
+      } else {
+        // Default to regular dashboard, the photographer dashboard will handle redirects
+        router.push('/dashboard')
+      }
     }
   } catch (error) {
+    console.error('Login error:', error)
     toast.error('Login failed. Please try again.')
-  } finally {
-    isLoading.value = false
   }
 }
 
-const loginWithGoogle = () => {
-  toast.info('Google login integration coming soon!')
+const loginWithGoogle = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    
+    if (error) {
+      toast.error(error.message)
+    }
+  } catch (error) {
+    toast.error('Google login failed. Please try again.')
+  }
 }
 
-const loginWithFacebook = () => {
-  toast.info('Facebook login integration coming soon!')
+const loginWithFacebook = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    
+    if (error) {
+      toast.error(error.message)
+    }
+  } catch (error) {
+    toast.error('Facebook login failed. Please try again.')
+  }
 }
 </script>

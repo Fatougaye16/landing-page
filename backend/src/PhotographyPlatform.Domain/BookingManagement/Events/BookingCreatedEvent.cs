@@ -1,0 +1,22 @@
+using PhotographyPlatform.Domain.Authentication.ValueObjects;
+using PhotographyPlatform.Domain.BookingManagement.ValueObjects;
+using PhotographyPlatform.Domain.Common.BaseTypes;
+using PhotographyPlatform.Domain.StudioManagement.ValueObjects;
+
+namespace PhotographyPlatform.Domain.BookingManagement.Events;
+
+public record BookingCreatedEvent : DomainEvent
+{
+    public BookingId BookingId { get; init; }
+    public UserId ClientId { get; init; }
+    public StudioProfileId PhotographerId { get; init; }
+    public DateTime BookingDate { get; init; }
+
+    public BookingCreatedEvent(BookingId bookingId, UserId clientId, StudioProfileId photographerId, DateTime bookingDate)
+    {
+        BookingId = bookingId;
+        ClientId = clientId;
+        PhotographerId = photographerId;
+        BookingDate = bookingDate;
+    }
+}

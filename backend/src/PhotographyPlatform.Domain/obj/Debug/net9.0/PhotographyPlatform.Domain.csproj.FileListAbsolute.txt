@@ -1,0 +1,13 @@
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.csproj.AssemblyReference.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.AssemblyInfoInputs.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.AssemblyInfo.cs
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.csproj.CoreCompileInputs.cache
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.sourcelink.json
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\bin\Debug\net9.0\PhotographyPlatform.Domain.deps.json
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\bin\Debug\net9.0\PhotographyPlatform.Domain.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\bin\Debug\net9.0\PhotographyPlatform.Domain.pdb
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\refint\PhotographyPlatform.Domain.dll
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\PhotographyPlatform.Domain.pdb
+C:\Users\FatouGaye\codes\landing-page\backend\src\PhotographyPlatform.Domain\obj\Debug\net9.0\ref\PhotographyPlatform.Domain.dll

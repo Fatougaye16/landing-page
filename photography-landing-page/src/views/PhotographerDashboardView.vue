@@ -1,7 +1,17 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Dashboard Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200 dashboard-header">
+    <!-- Loading State -->
+    <div v-if="isLoadingData || loading" class="flex items-center justify-center min-h-screen">
+      <div class="flex flex-col items-center gap-4">
+        <div class="loading loading-spinner loading-lg text-[#7b1e3a]"></div>
+        <p class="text-gray-600">Loading your dashboard...</p>
+      </div>
+    </div>
+    
+    <!-- Main Dashboard Content -->
+    <div v-else-if="photographer">
+      <!-- Dashboard Header -->
+      <div class="bg-white shadow-sm border-b border-gray-200 dashboard-header">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div class="flex items-center space-x-3 sm:space-x-4">
@@ -44,7 +54,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-600">Total Bookings</p>
-              <p class="text-2xl font-bold text-gray-900">{{ appointments.length }}</p>
+              <p class="text-2xl font-bold text-gray-900">{{ appointments?.length || 0 }}</p>
             </div>
           </div>
         </div>
@@ -56,7 +66,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-600">Client Albums</p>
-              <p class="text-2xl font-bold text-gray-900">{{ clientAlbums.length }}</p>
+              <p class="text-2xl font-bold text-gray-900">{{ clientAlbums?.length || 0 }}</p>
             </div>
           </div>
         </div>
@@ -68,7 +78,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-600">This Week</p>
-              <p class="text-2xl font-bold text-gray-900">{{ thisWeekAppointments.length }}</p>
+              <p class="text-2xl font-bold text-gray-900">{{ thisWeekAppointments?.length || 0 }}</p>
             </div>
           </div>
         </div>
@@ -325,6 +335,20 @@
         </div>
       </div>
     </div>
+    </div>
+    
+    <!-- Error State -->
+    <div v-else class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <div class="text-6xl mb-4">📷</div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+        <p class="text-gray-600 mb-4">You need to be logged in as a photographer to access this dashboard.</p>
+        <button @click="router.push('/login?redirect=/photographer-dashboard')" 
+                class="btn btn-primary">
+          Login as Photographer
+        </button>
+      </div>
+    </div>
 
     <!-- Upload Photos Modal -->
     <div v-if="showUploadModal" 
@@ -539,9 +563,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useAuth } from '@/composables/useAuth'
+import { useSupabase } from '@/composables/useSupabase'
+import { useBooking } from '@/composables/useBooking'
 import 'vue3-toastify/dist/index.css'
 
 const router = useRouter()
+
+// Authentication and API
+const { user, signOut } = useAuth()
+const { fetchData, insertData, updateData, deleteData, loading, error } = useSupabase()
+const { loadPhotographerBookings, updateBookingStatus } = useBooking()
 
 const photographer = ref(null)
 const activeTab = ref('appointments')
@@ -608,66 +640,96 @@ const onboardingSteps = ref([
 ])
 
 const tabs = computed(() => [
-  { id: 'appointments', name: 'Appointments', icon: 'fas fa-calendar-alt', count: appointments.value.length },
-  { id: 'albums', name: 'Client Albums', icon: 'fas fa-images', count: clientAlbums.value.length },
+  { id: 'appointments', name: 'Appointments', icon: 'fas fa-calendar-alt', count: appointments.value?.length || 0 },
+  { id: 'albums', name: 'Client Albums', icon: 'fas fa-images', count: clientAlbums.value?.length || 0 },
   { id: 'profile', name: 'Studio Profile', icon: 'fas fa-user-circle', count: null }
 ])
 
-const appointments = ref([
-  {
-    id: 1,
-    client: { name: 'Sarah Johnson', email: 'sarah@email.com', avatar: '/portrait.jpg' },
-    package: 'Wedding',
-    date: '2025-09-25',
-    time: '10:00 AM',
-    status: 'pending'
-  },
-  {
-    id: 2,
-    client: { name: 'Mike Thompson', email: 'mike@email.com', avatar: '/man-lens.jpg' },
-    package: 'Portrait',
-    date: '2025-09-20',
-    time: '2:00 PM',
-    status: 'confirmed'
-  },
-  {
-    id: 3,
-    client: { name: 'Emma Davis', email: 'emma@email.com', avatar: '/shot-2.jpg' },
-    package: 'Event',
-    date: '2025-08-15',
-    time: '11:30 AM',
-    status: 'completed'
-  }
-])
+// Reactive data
+const appointments = ref([])
+const isLoadingData = ref(false)
 
-const clientAlbums = ref([
-  {
-    id: 1,
-    title: 'Emma\'s Corporate Event',
-    client: 'Emma Davis',
-    coverPhoto: '/event.jpg',
-    status: 'edited',
-    editRequests: 0,
-    date: 'Aug 15, 2025',
-    photos: [
-      { id: 'p1', url: '/event.jpg', filename: 'event_001.jpg' },
-      { id: 'p2', url: '/shot-3.jpg', filename: 'event_002.jpg' }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Mike\'s Portrait Session',
-    client: 'Mike Thompson',
-    coverPhoto: '/man-lens.jpg',
-    status: 'unedited',
-    editRequests: 3,
-    date: 'Sep 20, 2025',
-    photos: [
-      { id: 'p3', url: '/man-lens.jpg', filename: 'portrait_001_raw.jpg', selected: false },
-      { id: 'p4', url: '/portrait.jpg', filename: 'portrait_002_raw.jpg', selected: false }
-    ]
+// Load appointments from Supabase
+const loadAppointments = async () => {
+  if (!photographer.value?.id) return
+  
+  isLoadingData.value = true
+  try {
+    const bookings = await loadPhotographerBookings(photographer.value.id)
+    
+    // Transform bookings to match component structure
+    appointments.value = bookings.map(booking => {
+      const clientProfile = booking.client || {}
+      return {
+        id: booking.id,
+        client: {
+          name: clientProfile.full_name || clientProfile.email?.split('@')[0] || 'Client',
+          email: clientProfile.email || 'No email',
+          avatar: clientProfile.avatar_url || '/portrait.jpg'
+        },
+        package: booking.session_type || 'Standard',
+        date: booking.session_date,
+        time: booking.session_time || 'TBD',
+        status: booking.status,
+        location: booking.location,
+        price: booking.price,
+        notes: booking.client_notes
+      }
+    })
+  } catch (err) {
+    console.error('Error loading appointments:', err)
+    showError('Failed to load appointments', loadAppointments)
+  } finally {
+    isLoadingData.value = false
   }
-])
+}
+
+const clientAlbums = ref([])
+
+// Load photo albums from Supabase
+const loadClientAlbums = async () => {
+  if (!photographer.value?.id) return
+  
+  try {
+    // Fetch photo albums for this photographer
+    const albums = await fetchData('photo_albums', {
+      photographer_id: photographer.value.id
+    })
+    
+    if (albums) {
+      // Transform albums data
+      clientAlbums.value = await Promise.all(albums.map(async (album) => {
+        // Get photos for this album
+        const photos = await fetchData('photos', {
+          album_id: album.id
+        }) || []
+        
+        return {
+          id: album.id,
+          title: album.title || `${album.client_name || 'Client'} Session`,
+          client: album.client_name || 'Client',
+          coverPhoto: photos[0]?.image_url || '/shot-1.jpg',
+          status: album.status || 'unedited',
+          editRequests: album.edit_requests || 0,
+          date: new Date(album.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short', 
+            day: 'numeric'
+          }),
+          photos: photos.map(photo => ({
+            id: photo.id,
+            url: photo.image_url,
+            filename: photo.filename || 'photo.jpg',
+            selected: photo.selected || false
+          }))
+        }
+      }))
+    }
+  } catch (err) {
+    console.error('Error loading client albums:', err)
+    showError('Failed to load photo albums', loadClientAlbums)
+  }
+}
 
 const notifications = ref([
   {
@@ -687,11 +749,14 @@ const notifications = ref([
 ])
 
 const filteredAppointments = computed(() => {
+  if (!appointments.value || appointments.value.length === 0) return []
   if (appointmentFilter.value === 'all') return appointments.value
   return appointments.value.filter(appointment => appointment.status === appointmentFilter.value)
 })
 
 const thisWeekAppointments = computed(() => {
+  if (!appointments.value || appointments.value.length === 0) return []
+  
   const now = new Date()
   const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
   const endOfWeek = new Date(now.setDate(startOfWeek.getDate() + 6))
@@ -702,19 +767,37 @@ const thisWeekAppointments = computed(() => {
   })
 })
 
-const confirmAppointment = (appointment) => {
-  appointment.status = 'confirmed'
-  toast.success(`Appointment with ${appointment.client.name} confirmed!`)
+const confirmAppointment = async (appointment) => {
+  try {
+    await updateBookingStatus(appointment.id, 'confirmed')
+    appointment.status = 'confirmed'
+    toast.success(`Appointment with ${appointment.client.name} confirmed!`)
+  } catch (err) {
+    console.error('Error confirming appointment:', err)
+    toast.error('Failed to confirm appointment')
+  }
 }
 
-const declineAppointment = (appointment) => {
-  appointment.status = 'cancelled'
-  toast.info(`Appointment with ${appointment.client.name} declined.`)
+const declineAppointment = async (appointment) => {
+  try {
+    await updateBookingStatus(appointment.id, 'cancelled')
+    appointment.status = 'cancelled'
+    toast.info(`Appointment with ${appointment.client.name} declined.`)
+  } catch (err) {
+    console.error('Error declining appointment:', err)
+    toast.error('Failed to decline appointment')
+  }
 }
 
-const markAsCompleted = (appointment) => {
-  appointment.status = 'completed'
-  toast.success(`Session with ${appointment.client.name} marked as completed!`)
+const markAsCompleted = async (appointment) => {
+  try {
+    await updateBookingStatus(appointment.id, 'completed')
+    appointment.status = 'completed'
+    toast.success(`Session with ${appointment.client.name} marked as completed!`)
+  } catch (err) {
+    console.error('Error marking appointment as completed:', err)
+    toast.error('Failed to update appointment status')
+  }
 }
 
 const rescheduleAppointment = (appointment) => {
@@ -745,28 +828,51 @@ const shareAlbum = (album) => {
   toast.success(`Sharing link generated for ${album.title}`)
 }
 
-const createAlbum = () => {
-  const album = {
-    id: Date.now(),
-    title: newAlbum.value.title,
-    client: newAlbum.value.client,
-    status: newAlbum.value.status,
-    editRequests: 0,
-    date: new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    }),
-    coverPhoto: '/shot-1.jpg',
-    photos: []
+const createAlbum = async () => {
+  if (!photographer.value?.id) {
+    toast.error('Photographer not found')
+    return
   }
   
-  clientAlbums.value.push(album)
-  toast.success(`Album "${album.title}" created successfully!`)
-  
-  // Reset form and close modal
-  newAlbum.value = { title: '', client: '', status: 'unedited' }
-  showUploadModal.value = false
+  try {
+    const albumData = {
+      title: newAlbum.value.title,
+      client_name: newAlbum.value.client,
+      photographer_id: photographer.value.id,
+      status: newAlbum.value.status,
+      edit_requests: 0
+    }
+    
+    const createdAlbum = await insertData('photo_albums', albumData)
+    
+    if (createdAlbum) {
+      // Add to local state
+      const album = {
+        id: createdAlbum.id,
+        title: createdAlbum.title,
+        client: createdAlbum.client_name,
+        status: createdAlbum.status,
+        editRequests: 0,
+        date: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        }),
+        coverPhoto: '/shot-1.jpg',
+        photos: []
+      }
+      
+      clientAlbums.value.push(album)
+      toast.success(`Album "${album.title}" created successfully!`)
+      
+      // Reset form and close modal
+      newAlbum.value = { title: '', client: '', status: 'unedited' }
+      showUploadModal.value = false
+    }
+  } catch (err) {
+    console.error('Error creating album:', err)
+    toast.error('Failed to create album')
+  }
 }
 
 // UI improvement functions
@@ -840,80 +946,173 @@ const showLogoutConfirmation = () => {
   showLogoutConfirm.value = true
 }
 
-const logout = () => {
+const logout = async () => {
   showLogoutConfirm.value = false
-  localStorage.removeItem('user')
-  localStorage.removeItem('photographer')
-  photographer.value = null
   
-  // Emit custom event to notify navbar of logout
-  window.dispatchEvent(new CustomEvent('userLogout'))
-  
-  toast.success('Logged out successfully!')
-  router.push('/')
+  try {
+    await signOut()
+    photographer.value = null
+    
+    // Emit custom event to notify navbar of logout
+    window.dispatchEvent(new CustomEvent('userLogout'))
+    
+    toast.success('Logged out successfully!')
+    router.push('/')
+  } catch (err) {
+    console.error('Error during logout:', err)
+    toast.error('Logout failed, please try again')
+  }
 }
 
-const updateProfile = () => {
-  // Update photographer data
-  photographer.value = { ...photographer.value, ...profileForm.value }
-  localStorage.setItem('photographer', JSON.stringify(photographer.value))
-  toast.success('Studio profile updated successfully!')
-}
-
-onMounted(() => {
-  // Check if photographer is logged in
-  const photographerData = localStorage.getItem('photographer')
-  if (photographerData) {
-    photographer.value = JSON.parse(photographerData)
-    profileForm.value = {
-      studioName: photographer.value.studioName || '',
-      name: photographer.value.name || '',
-      email: photographer.value.email || '',
-      phone: photographer.value.phone || '',
-      description: photographer.value.description || '',
-      experience: photographer.value.experience || 0,
-      basePrice: photographer.value.basePrice || 0,
-      specialization: photographer.value.specialization || 'portrait'
+const updateProfile = async () => {
+  if (!photographer.value?.id) {
+    toast.error('Photographer profile not found')
+    return
+  }
+  
+  try {
+    const profileData = {
+      full_name: profileForm.value.name,
+      studio_name: profileForm.value.studioName,
+      phone: profileForm.value.phone,
+      description: profileForm.value.description,
+      experience: profileForm.value.experience,
+      base_price: profileForm.value.basePrice,
+      specialization: profileForm.value.specialization
     }
+    
+    // Update in database
+    const updatedProfile = await updateData('profiles', photographer.value.id, profileData)
+    
+    if (updatedProfile) {
+      // Update local photographer data
+      photographer.value = { 
+        ...photographer.value, 
+        name: profileData.full_name,
+        studioName: profileData.studio_name,
+        phone: profileData.phone,
+        description: profileData.description,
+        experience: profileData.experience,
+        basePrice: profileData.base_price,
+        specialization: profileData.specialization
+      }
+      
+      // Also update localStorage session data
+      try {
+        const sessionKey = 'sb-ywlujqnutcqlghucyfwx-auth-token'
+        const sessionData = localStorage.getItem(sessionKey)
+        if (sessionData) {
+          const parsedSession = JSON.parse(sessionData)
+          if (parsedSession.user && parsedSession.user.user_metadata) {
+            parsedSession.user.user_metadata = {
+              ...parsedSession.user.user_metadata,
+              full_name: profileForm.value.name,
+              studio_name: profileForm.value.studioName,
+              phone: profileForm.value.phone,
+              description: profileForm.value.description,
+              experience: profileForm.value.experience,
+              base_price: profileForm.value.basePrice,
+              specialization: profileForm.value.specialization
+            }
+            localStorage.setItem(sessionKey, JSON.stringify(parsedSession))
+          }
+        }
+      } catch (localStorageErr) {
+        console.warn('Could not update localStorage session data:', localStorageErr)
+      }
+      
+      toast.success('Studio profile updated successfully!')
+    }
+  } catch (err) {
+    console.error('Error updating profile:', err)
+    toast.error('Failed to update profile: ' + (err.message || 'Please try again.'))
+  }
+}
+
+onMounted(async () => {
+  initializeDashboard()
+})
+
+const initializeDashboard = async () => {
+  isLoadingData.value = true
+  
+  try {
+    // Get user data from localStorage or Supabase auth
+    let currentUser = user.value
+    
+    // If no user from composable, try localStorage
+    if (!currentUser) {
+      const supabaseSession = localStorage.getItem('sb-ywlujqnutcqlghucyfwx-auth-token')
+      if (supabaseSession) {
+        try {
+          const sessionData = JSON.parse(supabaseSession)
+          currentUser = sessionData.user
+        } catch (e) {
+          console.warn('Could not parse localStorage session data')
+        }
+      }
+    }
+    
+    if (!currentUser) {
+      console.warn('User not authenticated, redirecting to login')
+      router.push('/login?redirect=/photographer-dashboard')
+      return
+    }
+    
+    // Check if user has photographer role
+    const userRole = currentUser.user_metadata?.role
+    if (userRole !== 'photographer') {
+      toast.error('Access denied. You need photographer privileges to access this dashboard.')
+      router.push('/dashboard')
+      return
+    }
+    
+    // Set up photographer data from user metadata
+    photographer.value = {
+      id: currentUser.id,
+      name: currentUser.user_metadata?.full_name || 'Photographer',
+      studioName: currentUser.user_metadata?.studio_name || 'Photography Studio',
+      email: currentUser.email,
+      phone: currentUser.user_metadata?.phone || '',
+      description: currentUser.user_metadata?.description || '',
+      experience: currentUser.user_metadata?.experience || 0,
+      basePrice: currentUser.user_metadata?.base_price || 150,
+      specialization: currentUser.user_metadata?.specialization || 'portrait',
+      avatar: currentUser.user_metadata?.avatar || '/man-lens.jpg'
+    }
+    
+    // Initialize profile form
+    profileForm.value = {
+      studioName: photographer.value.studioName,
+      name: photographer.value.name,
+      email: photographer.value.email,
+      phone: photographer.value.phone,
+      description: photographer.value.description,
+      experience: photographer.value.experience,
+      basePrice: photographer.value.basePrice,
+      specialization: photographer.value.specialization
+    }
+    
+    // Load dashboard data
+    await Promise.all([
+      loadAppointments(),
+      loadClientAlbums()
+    ])
     
     // Check if onboarding should be shown
     const onboardingComplete = localStorage.getItem('photographer-onboarding-complete')
-    if (!onboardingComplete) {
+    if (!onboardingComplete && photographer.value) {
       setTimeout(() => {
         showOnboarding.value = true
-      }, 1000) // Show after 1 second delay
+      }, 1000)
     }
-  } else {
-    // Check if user is logged in and is a photographer
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      const user = JSON.parse(userData)
-      if (user.role === 'photographer') {
-        photographer.value = user
-        profileForm.value = {
-          studioName: user.studioName || '',
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          description: user.description || '',
-          experience: user.experience || 0,
-          basePrice: user.basePrice || 0,
-          specialization: user.specialization || 'portrait'
-        }
-        
-        // Check if onboarding should be shown
-        const onboardingComplete = localStorage.getItem('photographer-onboarding-complete')
-        if (!onboardingComplete) {
-          setTimeout(() => {
-            showOnboarding.value = true
-          }, 1000) // Show after 1 second delay
-        }
-      } else {
-        router.push('/dashboard') // Redirect clients to their dashboard
-      }
-    } else {
-      router.push('/login?redirect=/photographer-dashboard')
-    }
+  } catch (err) {
+    console.error('Error loading photographer dashboard:', err)
+    showError('Failed to load dashboard data. ' + (err.message || 'Please try again.'), async () => {
+      await initializeDashboard()
+    })
+  } finally {
+    isLoadingData.value = false
   }
-})
+}
 </script>

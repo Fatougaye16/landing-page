@@ -64,19 +64,19 @@ const router = createRouter({
 })
 
 // Navigation guard for protected routes
-router.beforeEach((to, from, next) => {
-  const userData = localStorage.getItem('user')
-  const user = userData ? JSON.parse(userData) : null
+router.beforeEach(async (to, from, next) => {
+  const { supabase } = await import('@/lib/supabase')
+  const { data: { session } } = await supabase.auth.getSession()
   
-  if (to.meta.requiresAuth && !user) {
+  if (to.meta.requiresAuth && !session) {
     // Redirect to login if route requires auth and user is not logged in
     next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if (to.meta.requiresPhotographer && (!user || user.role !== 'photographer')) {
+  } else if (to.meta.requiresPhotographer && (!session || session.user.user_metadata?.role !== 'photographer')) {
     // Redirect to login if route requires photographer role
     next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if ((to.name === 'login' || to.name === 'register') && user) {
+  } else if ((to.name === 'login' || to.name === 'register') && session) {
     // Redirect to appropriate dashboard if user is already logged in
-    if (user.role === 'photographer') {
+    if (session.user.user_metadata?.role === 'photographer') {
       next({ name: 'photographer-dashboard' })
     } else {
       next({ name: 'dashboard' })
